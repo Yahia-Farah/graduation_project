@@ -1,0 +1,26 @@
+abstract class AuthRepo {
+  Future<AuthResult> login({required String email, required String password});
+
+  Future<AuthResult> signup({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String nationalId,
+    required String password,
+    required String confirmPassword,
+  });
+}
+
+class AuthResult {
+  final String accessToken;
+  final String refreshToken;
+  final String userId;
+  final String role;
+
+  AuthResult({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.userId,
+    required this.role,
+  });
+}
