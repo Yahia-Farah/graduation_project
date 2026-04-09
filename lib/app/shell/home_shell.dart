@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/viewmodel/auth_session.dart';
 import '../../features/cases/presentation/view/cases_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
+import '../../features/users/presentation/view/users_management_page.dart';
 import '../home_nav_provider.dart';
 import '../theme/design_tokens.dart';
 import 'menu_items.dart';
@@ -80,8 +81,8 @@ class HomeShell extends ConsumerWidget {
       // case 'hearings':
       //   return const HearingsPage();
 
-      // case 'users':
-      //   return const UsersManagementPage();
+      case 'users':
+        return const UsersManagementPage();
 
       default:
         return const Center(child: Text('Unknown'));

@@ -18,6 +18,9 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (o, h) {
+        if (session.isAuthed) {
+          o.headers['Authorization'] = 'Bearer ${session.accessToken}';
+        }
         // ignore: avoid_print
         print('➡️ ${o.method} ${o.baseUrl}${o.path}  data=${o.data}');
         h.next(o);

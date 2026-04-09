@@ -2,9 +2,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
-import '../../../auth/presentation/viewmodel/auth_session.dart';
 import '../../domain/case_details_model.dart';
-import '../../domain/case_status.dart';
 import '../viewmodel/case_details_vm.dart';
 
 class CaseDetailsPage extends ConsumerStatefulWidget {
@@ -17,6 +15,10 @@ class CaseDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
+  int _aiTabIndex = 0; // 0 for Summary (الملخص), 1 for Analysis (التحليل)
+  bool _isAnalyzing = false;
+  bool _isAnalyzed = false;
+
   @override
   void initState() {
     super.initState();
@@ -25,376 +27,360 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
     });
   }
 
+  void _startAnalysis() {
+    setState(() => _isAnalyzing = true);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _isAnalyzing = false;
+          _isAnalyzed = true;
+          _aiTabIndex = 1; // Auto switch to analysis
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(authSessionProvider);
-    final role = (session.role ?? '').toUpperCase();
-    final canEditStatus = role == 'ADMIN' || role == 'JUDGE';
     final st = ref.watch(caseDetailsVmProvider);
 
-    if (st.loading) {
-      return const Center(child: ProgressRing());
-    }
-
-    if (st.error != null) {
-      return Center(child: Text(st.error!));
-    }
-
+    if (st.loading) return const ScaffoldPage(content: Center(child: ProgressRing()));
+    if (st.error != null) return ScaffoldPage(content: Center(child: Text(st.error!)));
     final data = st.data!;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: ScaffoldPage(
         padding: EdgeInsets.zero,
-        content: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _InfoCard(caseItem: data),
-
-              const SizedBox(height: 16),
-
-              // ✅ هنا مكان الجزء بتاع تغيير الحالة
-              if (canEditStatus) ...[
-                _StatusEditor(
-                  currentStatus: data.status,
-                  loading: st.updatingStatus,
-                  error: st.updateError,
-                  success: st.updateSuccess,
-                  onChanged: (newStatus) {
-                    ref
-                        .read(caseDetailsVmProvider.notifier)
-                        .changeStatus(
-                          caseId: widget.caseId,
-                          newStatus: newStatus,
-                        );
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _FilesCard(
-                        title: 'ملفات القضية',
-                        files: data.caseFiles,
-                        emptyText: 'لا توجد ملفات بعد',
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _FilesCard(
-                        title: 'ملفات الدفاع',
-                        files: data.defenseFiles,
-                        emptyText: 'لا توجد ملفات بعد',
-                      ),
-                    ),
-                  ],
-                ),
+        content: Column(
+          children: [
+            // Top Bar
+            Container(
+              height: 60,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              color: DesignTokens.beige, // using beige as placeholder for yellow top bar
+              child: Row(
+                children: [
+                  Text(
+                    'قضية رقم #\${data.caseNumber} - جنايات',
+                    style: const TextStyle(fontFamily: 'Amiri', fontSize: 20, fontWeight: FontWeight.bold, color: DesignTokens.brown),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(FluentIcons.chevron_right, size: 20, color: DesignTokens.brown),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            
+            // Layout (3 columns)
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Right Column (AI Assistant) - 25% width
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(left: BorderSide(color: DesignTokens.beige, width: 2)),
+                      ),
+                      child: _buildAIAssistantColumn(),
+                    ),
+                  ),
+
+                  // Middle Column (PDF Viewer) - 50% width
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(left: BorderSide(color: DesignTokens.beige, width: 2)),
+                      ),
+                      child: _buildPDFViewerColumn(),
+                    ),
+                  ),
+
+                  // Left (actually Right in RTL) Column (Files Explorer) - 25% width
+                  Expanded(
+                    flex: 2,
+                    child: _buildFilesColumn(data),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.caseItem});
-
-  final CaseDetailsModel caseItem;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: DesignTokens.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DesignTokens.lightGray),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'تفاصيل القضية #${caseItem.caseNumber}',
-            style: const TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: DesignTokens.brown,
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          Text(
-            caseItem.title,
-            style: const TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: DesignTokens.brown,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Wrap(
-            spacing: 16,
-            runSpacing: 10,
-            children: [
-              _KV('الحالة', _statusLabel(caseItem.status)),
-              _KV('القاضي', caseItem.judgeName ?? '—'),
-              _KV('المحامي', caseItem.lawyerName ?? '—'),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          Text(
-            caseItem.description.isEmpty ? '—' : caseItem.description,
-            textAlign: TextAlign.right,
-            style: const TextStyle(
-              fontFamily: 'Amiri',
-              color: DesignTokens.black,
-              height: 1.4,
-            ),
-          ),
-
-          if ((caseItem.courtRuling ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 12),
-            const Text(
-              'حكم المحكمة:',
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontWeight: FontWeight.w700,
-                color: DesignTokens.gray,
+  Widget _buildAIAssistantColumn() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          color: DesignTokens.brown,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          alignment: Alignment.center,
+          child: const Text('مساعد الذكاء الاصطناعي', style: TextStyle(color: Colors.white, fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16)),
+        ),
+        
+        // Tabs
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _aiTabIndex = 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: _aiTabIndex == 0 ? DesignTokens.brown : Colors.transparent, width: 2)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(FluentIcons.read, size: 14),
+                      const SizedBox(width: 8),
+                      Text('الملخص', style: TextStyle(fontFamily: 'Amiri', fontWeight: _aiTabIndex == 0 ? FontWeight.bold : FontWeight.normal, color: _aiTabIndex == 0 ? DesignTokens.brown : DesignTokens.gray)),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              caseItem.courtRuling!.trim(),
-              style: const TextStyle(fontFamily: 'Amiri'),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _aiTabIndex = 1),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: _aiTabIndex == 1 ? DesignTokens.brown : Colors.transparent, width: 2)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(FluentIcons.set_action, size: 14),
+                      const SizedBox(width: 8),
+                      Text('التحليل', style: TextStyle(fontFamily: 'Amiri', fontWeight: _aiTabIndex == 1 ? FontWeight.bold : FontWeight.normal, color: _aiTabIndex == 1 ? DesignTokens.brown : DesignTokens.gray)),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
-        ],
-      ),
+        ),
+
+        // Content Area
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildAIAssistantContent(),
+          ),
+        ),
+      ],
     );
   }
 
-  String _statusLabel(String s) {
-    switch (s) {
-      case 'PENDING':
-        return "لم يبدأ التحليل";
-      case 'IN_PROGRESS':
-        return "قيد التحليل";
-      case 'COMPLETED':
-        return "مكتمل";
-      default:
-        return s;
+  Widget _buildAIAssistantContent() {
+    if (_isAnalyzing) {
+      return const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ProgressRing(),
+          SizedBox(height: 16),
+          Text('جاري تحليل القضية ©', style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.brown)),
+        ],
+      );
+    }
+
+    if (!_isAnalyzed) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('لم يتم إجراء تحليل لهذه القضية بعد، اضغط على الزر لبدء التحليل', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.brown)),
+          const SizedBox(height: 16),
+          FilledButton(
+            style: ButtonStyle(backgroundColor: WidgetStateProperty.all(DesignTokens.brown)),
+            onPressed: _startAnalysis,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('حلل الآن', style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold)),
+                SizedBox(width: 8),
+                Icon(FluentIcons.share, size: 14),
+              ],
+            ),
+          )
+        ],
+      );
+    }
+
+    if (_aiTabIndex == 0) {
+      return ListView(
+        children: [
+          _buildAISection('٠١. أطراف الدعوى:', [
+            'المدعي: النيابة العامة المصرية.',
+            'المدعى عليه: (م. أ. ح) - طبيب بشري.',
+            'التهمة: التزوير في محررات رسمية واستعمالها.',
+          ]),
+          _buildAISection('٠٢. ملخص الوقائع:', [
+            'تتلخص الواقعة في قيام المتهم باستغلال وظيفته العمومية بإحدى المستشفيات الحكومية...',
+            'وذلك على خلاف الحقيقة، بقصد استخدام هذه التقارير...',
+          ]),
+          _buildAISection('٠٣. الأسانيد القانونية (مواد القانون):', [
+            'المادة ٢١١ من قانون العقوبات: بشأن تزوير المحررات...',
+            'المادة ٢١٤ من قانون العقوبات: بشأن استعمال المحرر المزور...',
+          ]),
+        ],
+      );
+    } else {
+      return ListView(
+        children: [
+          _buildAISection('القرار المقترح: [إدانة]', []),
+          _buildAISection('العقوبة المقترحة: السجن المشدد لمدة 5 سنوات + العزل من الوظيفة', []),
+          _buildAISection('٠١. الحيثيات: اتساق الأدلة المادية', [
+            'استنتاج الذكاء الاصطناعي: كشف التحليل الجنائي الرقمي...',
+            'السند القانوني: هذا الاستنتاج يستوفي الركن المادي...',
+          ]),
+          _buildAISection('٠٢. الحيثيات: تحليل القصد الجنائي', [
+            'استنتاج الذكاء الاصطناعي: أظهر تحليل السجلات...',
+          ]),
+        ],
+      );
     }
   }
-}
 
-class _KV extends StatelessWidget {
-  const _KV(this.k, this.v);
-
-  final String k;
-  final String v;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 240,
-      child: Row(
-        children: [
-          Text(
-            '$k: ',
-            style: const TextStyle(
-              fontFamily: 'Amiri',
-              fontWeight: FontWeight.w700,
-              color: DesignTokens.gray,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              v,
-              style: const TextStyle(
-                fontFamily: 'Amiri',
-                color: DesignTokens.black,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilesCard extends StatelessWidget {
-  const _FilesCard({
-    required this.title,
-    required this.emptyText,
-    required this.files,
-  });
-
-  final String title;
-  final String emptyText;
-  final List<CaseFile> files;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: DesignTokens.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DesignTokens.lightGray),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: DesignTokens.brown,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: files.isEmpty
-                ? Center(
-                    child: Text(
-                      emptyText,
-                      style: const TextStyle(
-                        fontFamily: 'Amiri',
-                        color: DesignTokens.gray,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: files.length,
-                    separatorBuilder: (_, __) => const Divider(),
-                    itemBuilder: (context, i) {
-                      final f = files[i];
-                      return ListTile(
-                        title: Text(
-                          f.fileName,
-                          textAlign: TextAlign.right,
-                          style: const TextStyle(fontFamily: 'Amiri'),
-                        ),
-                        subtitle: Text(f.fileType, textAlign: TextAlign.right),
-                        onPressed: () {
-                          // TODO: فتح الرابط (هنعملها بعدين بـ url_launcher)
-                        },
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusEditor extends StatelessWidget {
-  const _StatusEditor({
-    required this.currentStatus,
-    required this.loading,
-    required this.error,
-    required this.success,
-    required this.onChanged,
-  });
-
-  final String currentStatus; // "PENDING" ...
-  final bool loading;
-  final String? error;
-  final bool success;
-  final ValueChanged<CaseStatus> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final current = parseCaseStatus(currentStatus);
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: DesignTokens.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DesignTokens.lightGray),
-      ),
+  Widget _buildAISection(String title, List<String> bulletPoints) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Text(
-                'تغيير الحالة:',
-                style: TextStyle(
-                  fontFamily: 'Amiri',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              ComboBox<CaseStatus>(
-                value: current,
-                items: CaseStatus.values
-                    .map(
-                      (s) => ComboBoxItem(
-                        value: s,
-                        child: Text(
-                          caseStatusLabel(s),
-                          style: const TextStyle(fontFamily: 'Amiri'),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: loading
-                    ? null
-                    : (v) {
-                        if (v != null) onChanged(v);
-                      },
-              ),
-
-              const SizedBox(width: 10),
-              if (loading)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: ProgressRing(strokeWidth: 2),
-                ),
-            ],
-          ),
-
-          if (error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              error!,
-              style: const TextStyle(
-                fontFamily: 'Amiri',
-                color: DesignTokens.red,
-              ),
+          Text(title, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16, color: DesignTokens.brown)),
+          const SizedBox(height: 8),
+          ...bulletPoints.map((point) => Padding(
+            padding: const EdgeInsets.only(bottom: 4.0, right: 8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('• ', style: TextStyle(color: DesignTokens.brown, fontWeight: FontWeight.bold)),
+                Expanded(child: Text(point, style: const TextStyle(fontFamily: 'Amiri', fontSize: 14, color: DesignTokens.brown))),
+              ],
             ),
-          ],
-
-          if (success) ...[
-            const SizedBox(height: 8),
-            const Text(
-              'تم تحديث الحالة بنجاح',
-              style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.green),
-            ),
-          ],
+          )),
         ],
       ),
+    );
+  }
+
+  Widget _buildPDFViewerColumn() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          color: DesignTokens.brown,
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: Row(
+            children: [
+              const Icon(FluentIcons.remove, size: 12, color: Colors.white),
+              const SizedBox(width: 8),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), color: DesignTokens.beige, child: const Text('100%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: DesignTokens.brown))),
+              const SizedBox(width: 8),
+              const Icon(FluentIcons.add, size: 12, color: Colors.white),
+              const Spacer(),
+              const Text('2', style: TextStyle(color: Colors.white, fontSize: 12)),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('/', style: TextStyle(color: Colors.white, fontSize: 12))),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), color: DesignTokens.beige, child: const Text('1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: DesignTokens.brown))),
+              const Spacer(),
+              const Text('اسم الملف', style: TextStyle(color: Colors.white, fontFamily: 'Amiri', fontWeight: FontWeight.bold)),
+              const SizedBox(width: 8),
+              const Icon(FluentIcons.document, size: 14, color: Colors.white),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Container(
+            color: DesignTokens.lightGray,
+            alignment: Alignment.center,
+            // Placeholder for PDF Viewer Map
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)]),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(FluentIcons.pdf, size: 64, color: DesignTokens.gray),
+                  const SizedBox(height: 16),
+                  Text('PDF Viewer Placeholder', style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.gray, fontSize: 18)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilesColumn(CaseDetailsModel data) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          color: DesignTokens.brown,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          alignment: Alignment.center,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('جميع الملفات', style: TextStyle(color: Colors.white, fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16)),
+              SizedBox(width: 8),
+              Icon(FluentIcons.fabric_folder, color: Colors.white, size: 14),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildFolder('ملفات القضية', data.caseFiles.map((e) => e.fileName).toList()),
+              const SizedBox(height: 16),
+              _buildFolder('ملفات الدفاع', data.defenseFiles.map((e) => e.fileName).toList()),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFolder(String folderName, List<String> files) {
+    // Basic tree view mock
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(FluentIcons.chevron_down, size: 10, color: DesignTokens.brown),
+            const SizedBox(width: 8),
+            Text(folderName, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16, color: DesignTokens.brown)),
+            const Spacer(),
+            const Icon(FluentIcons.fabric_folder, size: 16, color: DesignTokens.brown),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...files.map((file) => Padding(
+          padding: const EdgeInsets.only(right: 24, bottom: 8),
+          child: Row(
+            children: [
+              Text(file, style: const TextStyle(fontFamily: 'Amiri', color: DesignTokens.brown)),
+              const Spacer(),
+              const Icon(FluentIcons.page, size: 14, color: DesignTokens.brown),
+            ],
+          ),
+        )),
+      ],
     );
   }
 }
