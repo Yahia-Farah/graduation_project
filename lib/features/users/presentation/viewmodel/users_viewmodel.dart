@@ -50,7 +50,7 @@ class UsersViewModel extends AsyncNotifier<List<UserEntity>> {
       );
 
       await repo.createUser(newUser);
-      state = AsyncValue.data(await _fetchUsers());
+      ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -61,7 +61,7 @@ class UsersViewModel extends AsyncNotifier<List<UserEntity>> {
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.deleteUser(userId);
-      state = AsyncValue.data(await _fetchUsers());
+      ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -72,7 +72,7 @@ class UsersViewModel extends AsyncNotifier<List<UserEntity>> {
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.toggleUserStatus(user.id, !user.isActive);
-      state = AsyncValue.data(await _fetchUsers());
+      ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

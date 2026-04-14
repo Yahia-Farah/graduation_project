@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/shell/home_shell.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../viewmodel/auth_session.dart';
+import 'otp_view.dart';
 import 'forgot_password_view.dart';
 import 'login_view.dart';
 import 'signup_view.dart';
 
-enum AuthPage { login, signup, forgot }
+enum AuthPage { login, signup, forgot, otp }
 
 class AuthShell extends ConsumerStatefulWidget {
   const AuthShell({super.key});
@@ -18,6 +19,7 @@ class AuthShell extends ConsumerStatefulWidget {
 
 class _AuthShellState extends ConsumerState<AuthShell> {
   AuthPage page = AuthPage.login;
+  String? registeredEmail;
 
   void go(AuthPage p) => setState(() => page = p);
 
@@ -41,7 +43,7 @@ class _AuthShellState extends ConsumerState<AuthShell> {
               clipBehavior: Clip.antiAlias,
               child: Row(
                 children: [
-                  Expanded(
+                   Expanded(
                     flex: 5,
                     child: Padding(
                       padding: const EdgeInsets.all(56),
@@ -74,11 +76,40 @@ class _AuthShellState extends ConsumerState<AuthShell> {
         return SignupView(
           key: const ValueKey('signup'),
           onGoLogin: () => go(AuthPage.login),
+          onSignupSuccess: (email) {
+            setState(() {
+              registeredEmail = email;
+              page = AuthPage.otp;
+            });
+          },
         );
       case AuthPage.forgot:
         return ForgotPasswordView(
           key: const ValueKey('forgot'),
           onGoLogin: () => go(AuthPage.login),
+        );
+      case AuthPage.otp:
+        return OtpView(
+          key: const ValueKey('otp'),
+          email: registeredEmail ?? '',
+          onVerified: () {
+            showDialog(
+              context: context,
+              builder: (ctx) => ContentDialog(
+                title: const Text('نجاح'),
+                content: const Text('تم تفعيل الحساب بنجاح، يمكنك الآن تسجيل الدخول.'),
+                actions: [
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      go(AuthPage.login);
+                    },
+                    child: const Text('حسناً'),
+                  ),
+                ],
+              ),
+            );
+          },
         );
     }
   }

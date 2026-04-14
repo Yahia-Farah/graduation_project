@@ -35,4 +35,18 @@ class AuthRemoteDs {
 
     return Map<String, dynamic>.from(res.data as Map);
   }
+
+  Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otpCode,
+  }) async {
+    final res = await _dio.post(
+      '/auth/verify-otp',
+      data: {
+        "email": email,
+        "otpCode": otpCode,
+      },
+    );
+    return Map<String, dynamic>.from(res.data as Map);
+  }
 }

@@ -68,7 +68,20 @@ class UsersManagementPage extends ConsumerWidget {
                     );
                   },
                   loading: () => const Center(child: ProgressRing()),
-                  error: (e, st) => Center(child: Text('حدث خطأ: \$e')),
+                  error: (e, st) => Center(
+                    child: ContentDialog(
+                      title: const Text('تنبيه'),
+                      content: Text('حدث خطأ: $e'),
+                      actions: [
+                        FilledButton(
+                          onPressed: () {
+                            ref.invalidate(usersViewModelProvider);
+                          },
+                          child: const Text('إعادة المحاولة'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -174,7 +187,7 @@ class UsersManagementPage extends ConsumerWidget {
       builder: (ctx) {
         return ContentDialog(
           title: const Text('تأكيد الحذف'),
-          content: Text('هل أنت متأكد من حذف المستخدم \${user.fullName}؟'),
+          content: Text('هل أنت متأكد من حذف المستخدم ${user.fullName}؟'),
           actions: [
             Button(
               child: const Text('إلغاء'),

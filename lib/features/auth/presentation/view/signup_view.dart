@@ -7,12 +7,23 @@ import '../widgets/auth_input.dart';
 import '../widgets/password_input.dart';
 
 class SignupView extends ConsumerWidget {
-  const SignupView({super.key, required this.onGoLogin});
+  const SignupView({
+    super.key,
+    required this.onGoLogin,
+    required this.onSignupSuccess,
+  });
 
   final VoidCallback onGoLogin;
+  final void Function(String email) onSignupSuccess;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<SignupState>(signupVmProvider, (prev, next) {
+      if (next.isSuccess && (prev == null || !prev.isSuccess)) {
+        onSignupSuccess(next.email);
+      }
+    });
+
     final state = ref.watch(signupVmProvider);
     final vm = ref.read(signupVmProvider.notifier);
 

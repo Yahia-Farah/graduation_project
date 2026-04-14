@@ -39,7 +39,7 @@ class AuthRepoImpl implements AuthRepo {
   }
 
   @override
-  Future<AuthResult> signup({
+  Future<String> signup({
     required String firstName,
     required String lastName,
     required String email,
@@ -64,19 +64,27 @@ class AuthRepoImpl implements AuthRepo {
       final data = root['data'];
       if (data is! Map) throw Exception('Invalid response');
 
-      final access = (data['access_token'] ?? '').toString();
-      final refresh = (data['refresh_token'] ?? '').toString();
-      final id = (data['id'] ?? '').toString();
-      final role = (data['role'] ?? '').toString();
+      final returnedEmail = (data['email'] ?? '').toString();
 
-      if (access.isEmpty || refresh.isEmpty) throw Exception('Missing token');
+      if (returnedEmail.isEmpty) throw Exception('Email missing in response');
 
-      return AuthResult(
-        accessToken: access,
-        refreshToken: refresh,
-        userId: id,
-        role: role,
-      );
+      return returnedEmail;
+    } on DioException catch (e) {
+      throw Exception(_mapDioError(e));
+    }
+  }
+
+  @override
+  Future<void> verifyOtp({
+    required String email,
+    required String otpCode,
+  }) async {
+    try {
+      final root = await _remote.verifyOtp(email: email, otpCode: otpCode);
+
+      if (root['success'] != true) {
+        throw Exception((root['message'] ?? 'OTP Verification failed').toString());
+      }
     } on DioException catch (e) {
       throw Exception(_mapDioError(e));
     }

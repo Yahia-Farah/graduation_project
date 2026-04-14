@@ -19,6 +19,7 @@ class SignupState {
   final String? confirmPasswordError;
 
   final bool submitting;
+  final bool isSuccess;
   final String? submitError;
 
   const SignupState({
@@ -35,6 +36,7 @@ class SignupState {
     this.passwordError,
     this.confirmPasswordError,
     this.submitting = false,
+    this.isSuccess = false,
     this.submitError,
   });
 
@@ -52,6 +54,7 @@ class SignupState {
     String? passwordError,
     String? confirmPasswordError,
     bool? submitting,
+    bool? isSuccess,
     String? submitError,
   }) {
     return SignupState(
@@ -68,6 +71,7 @@ class SignupState {
       passwordError: passwordError,
       confirmPasswordError: confirmPasswordError,
       submitting: submitting ?? this.submitting,
+      isSuccess: isSuccess ?? this.isSuccess,
       submitError: submitError,
     );
   }
@@ -127,27 +131,35 @@ class SignupVm extends Notifier<SignupState> {
         nidErr == null &&
         passErr == null &&
         confErr == null;
+
   }
 
   Future<void> submitSignup() async {
-    final repo = ref.read(authRepoProvider);
-    final result = await repo.signup(
-      firstName: state.firstName.trim(),
-      lastName: state.lastName.trim(),
-      email: state.email.trim(),
-      nationalId: state.nationalId.trim(),
-      password: state.password,
-      confirmPassword: state.confirmPassword,
-    );
+    if (!validate()) {
+      return;
+    }
 
-    ref.read(authSessionProvider.notifier).setSession(
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      userId: result.userId,
-      role: result.role,
-    );
+    state = state.copyWith(submitting: true, submitError: null, isSuccess: false);
 
-    state = state.copyWith(submitting: false);
+    try {
+      final repo = ref.read(authRepoProvider);
+      final emailFromApi = await repo.signup(
+        firstName: state.firstName.trim(),
+        lastName: state.lastName.trim(),
+        email: state.email.trim(),
+        nationalId: state.nationalId.trim(),
+        password: state.password,
+        confirmPassword: state.confirmPassword,
+      );
+
+      // Now we just set success, which will tell the UI to jump to OTP view.
+      state = state.copyWith(submitting: false, isSuccess: true);
+    } catch (e) {
+      state = state.copyWith(
+        submitting: false,
+        submitError: e.toString().replaceFirst('Exception: ', ''),
+      );
+    }
   }
 }
 

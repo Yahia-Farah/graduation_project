@@ -29,20 +29,27 @@ class UserEntity {
     this.password,
   });
 
-  String get fullName => "\$firstName \$lastName";
+  String get fullName => "$firstName $lastName";
 
   factory UserEntity.fromJson(Map<String, dynamic> json) {
     return UserEntity(
-      id: json['id'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      email: json['email'] ?? '',
-      age: json['age'] ?? 0,
-      role: json['role'] ?? 'UNKNOWN',
-      isActive: json['isActive'] ?? false,
-      assignedCasesCount: json['assignedCasesCount'] ?? 0,
-      court: json['court'] ?? '',
-      isApproved: json['isApproved'] ?? false,
+      id: json['id']?.toString() ?? '',
+      firstName: json['firstName']?.toString() ?? json['first_name']?.toString() ?? '',
+      lastName: json['lastName']?.toString() ?? json['last_name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      age: int.tryParse(json['age']?.toString() ?? '0') ?? 0,
+      role: json['role']?.toString() ?? 'UNKNOWN',
+      isActive:
+          json['isActive'] == true ||
+          json['is_active'] == true ||
+          json['isActive']?.toString().toLowerCase() == 'true' ||
+          json['is_active']?.toString().toLowerCase() == 'true',
+      assignedCasesCount:
+          int.tryParse(json['assignedCasesCount']?.toString() ?? json['assigned_cases_count']?.toString() ?? '0') ?? 0,
+      court: json['court']?.toString() ?? '',
+      isApproved:
+          json['isApproved'] == true ||
+          json['isApproved']?.toString().toLowerCase() == 'true',
     );
   }
 

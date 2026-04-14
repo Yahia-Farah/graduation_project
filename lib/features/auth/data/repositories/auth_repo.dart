@@ -1,13 +1,18 @@
 abstract class AuthRepo {
   Future<AuthResult> login({required String email, required String password});
 
-  Future<AuthResult> signup({
+  Future<String> signup({
     required String firstName,
     required String lastName,
     required String email,
     required String nationalId,
     required String password,
     required String confirmPassword,
+  });
+
+  Future<void> verifyOtp({
+    required String email,
+    required String otpCode,
   });
 }
 
