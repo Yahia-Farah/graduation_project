@@ -1,9 +1,10 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/auth/presentation/view/auth_shell.dart';
 import '../../features/auth/presentation/viewmodel/auth_session.dart';
 import '../theme/design_tokens.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'menu_items.dart';
 import 'menu_items.dart';
 
 class SideMenu extends ConsumerWidget {
@@ -21,9 +22,9 @@ class SideMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      width: 260, // أو DesignTokens.sidebarWidth لو حطيتها
-      padding: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
+      width: 260.w, // أو DesignTokens.sidebarWidth لو حطيتها
+      padding: EdgeInsets.only(right: 16.w),
+      decoration: const BoxDecoration(
         color: DesignTokens.beige,
 
       ),
@@ -33,15 +34,15 @@ class SideMenu extends ConsumerWidget {
         children: [
           // Logo area
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: EdgeInsets.symmetric(vertical: 12.h),
             child: Image.asset(
               logo,
-              width: 137,
-              height: 167,
+              width: 137.w,
+              height: 167.h,
               fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           ...List.generate(items.length, (index) {
             final item = items[index];
 
@@ -61,10 +62,10 @@ class SideMenu extends ConsumerWidget {
               ref.read(authSessionProvider.notifier).clear();
             },
           ),
-          const Text(
+          Text(
             'v0.1',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11, color: DesignTokens.brown),
+            style: TextStyle(fontSize: 11.sp, color: DesignTokens.brown),
           ),
         ],
       ),
@@ -120,10 +121,11 @@ class _MenuItem extends StatelessWidget {
                   color: selected ? DesignTokens.beige : DesignTokens.brown,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                   fontFamily: "Amiri",
+                  fontSize: 14.sp,
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10.w),
 
             // ✅ هنا بقى الأيقونة بتتغير حسب اللي بتمره فوق
             Icon(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/user_entity.dart';
 import '../viewmodel/users_viewmodel.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'add_user_dialog.dart';
 
 class UsersManagementPage extends ConsumerWidget {
@@ -22,7 +23,7 @@ class UsersManagementPage extends ConsumerWidget {
       content: Directionality(
         textDirection: TextDirection.rtl,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+          padding: EdgeInsets.symmetric(horizontal: 24.0.w, vertical: 8.0.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -35,12 +36,12 @@ class UsersManagementPage extends ConsumerWidget {
                     style: TextStyle(fontSize: 16),
                   ),
                   FilledButton(
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(FluentIcons.add, size: 14),
-                        SizedBox(width: 8),
-                        Text('إضافة مستخدم جديد'),
+                        Icon(FluentIcons.add, size: 14.sp),
+                        SizedBox(width: 8.w),
+                        const Text('إضافة مستخدم جديد'),
                       ],
                     ),
                     onPressed: () {
@@ -52,7 +53,7 @@ class UsersManagementPage extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               // Data View
               Expanded(
                 child: state.when(
@@ -96,14 +97,14 @@ class UsersManagementPage extends ConsumerWidget {
     final Color roleColor = isAdmin ? DesignTokens.green : DesignTokens.brown;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: EdgeInsets.only(bottom: 12.0.h),
       child: Card(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12.w),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 48.w,
+              height: 48.h,
               decoration: BoxDecoration(
                 color: DesignTokens.beige,
                 shape: BoxShape.circle,
@@ -111,54 +112,54 @@ class UsersManagementPage extends ConsumerWidget {
               alignment: Alignment.center,
               child: Icon(
                 FluentIcons.contact,
-                size: 24,
+                size: 24.sp,
                 color: DesignTokens.brown,
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     user.fullName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Row(
                     children: [
-                      const Icon(FluentIcons.mail, size: 12),
-                      const SizedBox(width: 4),
-                      Text(user.email, style: const TextStyle(fontSize: 12)),
-                      const SizedBox(width: 16),
-                      const Icon(FluentIcons.entitlement_policy, size: 12),
-                      const SizedBox(width: 4),
-                      Text(user.court.isEmpty ? 'غير محدد' : user.court, style: const TextStyle(fontSize: 12)),
+                      Icon(FluentIcons.mail, size: 12.sp),
+                      SizedBox(width: 4.w),
+                      Text(user.email, style: TextStyle(fontSize: 12.sp)),
+                      SizedBox(width: 16.w),
+                      Icon(FluentIcons.entitlement_policy, size: 12.sp),
+                      SizedBox(width: 4.w),
+                      Text(user.court.isEmpty ? 'غير محدد' : user.court, style: TextStyle(fontSize: 12.sp)),
                     ],
                   ),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
               decoration: BoxDecoration(
                 color: roleColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16.r),
                 border: Border.all(color: roleColor),
               ),
               child: Text(
                 user.role,
                 style: TextStyle(
                   color: roleColor,
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16.w),
             ToggleSwitch(
               checked: user.isActive,
               content: const Text('نشط'),

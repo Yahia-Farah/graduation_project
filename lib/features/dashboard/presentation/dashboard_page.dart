@@ -1,5 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/design_tokens.dart';
 import '../../cases/domain/case_model.dart';
@@ -21,8 +22,8 @@ class DashboardPage extends ConsumerWidget {
         children: [
           // Stat Cards
           Wrap(
-            spacing: 24,
-            runSpacing: 16,
+            spacing: 24.w,
+            runSpacing: 16.h,
             alignment: WrapAlignment.spaceBetween,
             children: [
               _StatCard(title: "القضايا المكتملة", value: "90", icon: FluentIcons.check_mark),
@@ -30,7 +31,7 @@ class DashboardPage extends ConsumerWidget {
               _StatCard(title: "القضايا الجديدة", value: "130", icon: FluentIcons.new_folder),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // Search Row
           Row(
@@ -38,36 +39,36 @@ class DashboardPage extends ConsumerWidget {
               FilledButton(
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
-                  padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 10)),
+                  padding: WidgetStateProperty.all(EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h)),
                 ),
                 onPressed: () {},
-                child: const Row(
+                child: Row(
                   children: [
-                    Text('حلل الآن', style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16)),
-                    SizedBox(width: 8),
-                    Icon(FluentIcons.share, size: 16),
+                    Text('حلل الآن', style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16.sp)),
+                    SizedBox(width: 8.w),
+                    Icon(FluentIcons.share, size: 16.sp),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16.w),
               Expanded(
                 child: TextBox(
                   placeholder: 'ابحث في القضايا',
                   textAlign: TextAlign.right,
-                  suffix: const Padding(padding: EdgeInsets.only(right: 8), child: Icon(FluentIcons.search)),
-                  prefix: const Padding(padding: EdgeInsets.only(left: 8), child: Icon(FluentIcons.calendar)),
+                  suffix: Padding(padding: EdgeInsets.only(right: 8.w), child: Icon(FluentIcons.search, size: 20.sp)),
+                  prefix: Padding(padding: EdgeInsets.only(left: 8.w), child: Icon(FluentIcons.calendar, size: 20.sp)),
                   onChanged: vm.setQuery,
                   onSubmitted: (_) => vm.search(),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // Error handling
           if (st.error != null) ...[
-            Text(st.error!, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'Amiri', color: DesignTokens.red)),
-            const SizedBox(height: 12),
+            Text(st.error!, textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.red, fontSize: 14.sp)),
+            SizedBox(height: 12.h),
           ],
 
           // Cases Table
@@ -75,7 +76,7 @@ class DashboardPage extends ConsumerWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: DesignTokens.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16.r),
                 border: Border.all(color: DesignTokens.lightGray),
               ),
               child: st.loading && st.items.isEmpty
@@ -87,7 +88,7 @@ class DashboardPage extends ConsumerWidget {
                         Expanded(
                           child: ListView.separated(
                             itemCount: st.items.length,
-                            separatorBuilder: (_, __) => Container(height: 1, color: DesignTokens.brown.withValues(alpha: 0.2)),
+                            separatorBuilder: (_, __) => Container(height: 1.h, color: DesignTokens.brown.withValues(alpha: 0.2)),
                             itemBuilder: (context, i) {
                               final c = st.items[i];
                               return _CaseRow(
@@ -105,7 +106,7 @@ class DashboardPage extends ConsumerWidget {
                     ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // Pagination
           Row(
@@ -144,11 +145,11 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300,
-      padding: const EdgeInsets.all(20),
+      width: 300.w,
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -158,17 +159,17 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontFamily: "Amiri", fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontFamily: "Amiri", fontSize: 16.sp, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(width: 8),
-              Icon(icon, size: 16, color: DesignTokens.gray),
+              SizedBox(width: 8.w),
+              Icon(icon, size: 16.sp, color: DesignTokens.gray),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Text(
             "$value قضية",
             textDirection: TextDirection.rtl,
-            style: const TextStyle(fontFamily: "Amiri", fontSize: 24, fontWeight: FontWeight.bold, color: DesignTokens.brown),
+            style: TextStyle(fontFamily: "Amiri", fontSize: 24.sp, fontWeight: FontWeight.bold, color: DesignTokens.brown),
           ),
         ],
       ),
@@ -180,17 +181,17 @@ class _TableHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: DesignTokens.beige,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      child: const Row(
+      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
+      child: Row(
         children: [
-          Expanded(flex: 1, child: Text('رقم القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text('نوع القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text('تاريخ القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text('حالة القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold))),
+          Expanded(flex: 1, child: Text('رقم القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 14.sp))),
+          Expanded(flex: 2, child: Text('نوع القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 14.sp))),
+          Expanded(flex: 2, child: Text('تاريخ القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 14.sp))),
+          Expanded(flex: 2, child: Text('حالة القضية', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 14.sp))),
         ],
       ),
     );
@@ -209,19 +210,19 @@ class _CaseRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         color: Colors.transparent, // for hit testing
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
         child: Row(
           children: [
             Expanded(
               flex: 1,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [Text("#${c.caseNumber}", textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'Amiri')), const SizedBox(width: 8), Container(width: 14, height: 14, decoration: BoxDecoration(border: Border.all(color: DesignTokens.gray), borderRadius: BorderRadius.circular(4)))],
+                children: [Text("#${c.caseNumber}", textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontSize: 14.sp)), SizedBox(width: 8.w), Container(width: 14.w, height: 14.w, decoration: BoxDecoration(border: Border.all(color: DesignTokens.gray), borderRadius: BorderRadius.circular(4.r)))],
               ),
             ),
-            Expanded(flex: 2, child: Text("جنايات", textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold))),
-            Expanded(flex: 2, child: Text(_formatDate(c.createdAt), textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'Amiri'))),
-            Expanded(flex: 2, child: Text(_statusLabel(c.status), textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'Amiri'))),
+            Expanded(flex: 2, child: Text("جنايات", textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 14.sp))),
+            Expanded(flex: 2, child: Text(_formatDate(c.createdAt), textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontSize: 14.sp))),
+            Expanded(flex: 2, child: Text(_statusLabel(c.status), textAlign: TextAlign.right, style: TextStyle(fontFamily: 'Amiri', fontSize: 14.sp))),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/design_tokens.dart';
 
 class TopBar extends StatelessWidget {
@@ -19,7 +20,7 @@ class TopBar extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
         decoration: const BoxDecoration(
           color: DesignTokens.beige,
         ),
@@ -33,28 +34,28 @@ class TopBar extends StatelessWidget {
                 children: [
                   Text(
                     userName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Amiri',
-                      fontSize: 22,
+                      fontSize: 22.sp,
                       fontWeight: FontWeight.w700,
                       color: DesignTokens.brown,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6.h),
                   Text(
                     dateText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Amiri',
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                       color: DesignTokens.gray,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10.h),
 
                   // الخط اللي تحت التاريخ (زي الفيجما)
                   Container(
-                    height: 1,
+                    height: 1.h,
                     width: MediaQuery.of(context).size.width, // عدّلها حسب ما تحب
                     color: DesignTokens.brown
                   ),
@@ -64,16 +65,16 @@ class TopBar extends StatelessWidget {
 
             // زر الجرس (دائرة بيضاء)
             Container(
-              width: 44,
-              height: 44,
+              width: 44.w,
+              height: 44.h,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(360),
+                borderRadius: BorderRadius.circular(360.r),
               ),
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   FluentIcons.ringer,
-                  size: 18,
+                  size: 18.sp,
                   color: DesignTokens.brown,
                 ),
                 onPressed: onBellTap,

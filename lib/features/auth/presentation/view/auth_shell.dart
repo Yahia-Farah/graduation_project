@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/shell/home_shell.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../viewmodel/auth_session.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'otp_view.dart';
 import 'forgot_password_view.dart';
 import 'login_view.dart';
@@ -32,12 +34,12 @@ class _AuthShellState extends ConsumerState<AuthShell> {
       textDirection: TextDirection.rtl,
       child: ScaffoldPage(
         content: Padding(
-          padding: const EdgeInsets.all(80.0),
+          padding: EdgeInsets.symmetric(horizontal: 80.w, vertical: 40.h),
           child: Center(
             child: Container(
               decoration: BoxDecoration(
                 color: DesignTokens.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(color: DesignTokens.brown),
               ),
               clipBehavior: Clip.antiAlias,
@@ -46,7 +48,7 @@ class _AuthShellState extends ConsumerState<AuthShell> {
                    Expanded(
                     flex: 5,
                     child: Padding(
-                      padding: const EdgeInsets.all(56),
+                      padding: EdgeInsets.symmetric(horizontal: 56.w, vertical: 24.h),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 100),
                         child: _buildForm(),
