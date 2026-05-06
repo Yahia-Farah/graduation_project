@@ -17,7 +17,7 @@ class UsersManagementPage extends ConsumerWidget {
       header: const PageHeader(
         title: Text(
           'إدارة المستخدمين',
-          style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       content: Directionality(
@@ -137,7 +137,10 @@ class UsersManagementPage extends ConsumerWidget {
                       SizedBox(width: 16.w),
                       Icon(FluentIcons.entitlement_policy, size: 12.sp),
                       SizedBox(width: 4.w),
-                      Text(user.court.isEmpty ? 'غير محدد' : user.court, style: TextStyle(fontSize: 12.sp)),
+                      Text(
+                        user.court.isEmpty ? 'غير محدد' : user.court,
+                        style: TextStyle(fontSize: 12.sp),
+                      ),
                     ],
                   ),
                 ],

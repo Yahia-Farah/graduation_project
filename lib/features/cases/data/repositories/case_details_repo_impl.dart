@@ -1,5 +1,4 @@
 import '../../domain/case_details_model.dart';
-import '../../../auth/presentation/viewmodel/auth_session.dart';
 import '../sources/case_remote_details_ds.dart';
 import 'case_details_repo.dart';
 
@@ -12,10 +11,7 @@ class CaseDetailsRepoImpl implements CaseDetailsRepo {
   @override
   Future<CaseDetailsModel> getDetails(String caseId) async {
     final role = _getRole();
-    final body = await _remote.fetchDetails(
-      role: role,
-      caseId: caseId,
-    );
+    final body = await _remote.fetchDetails(role: role, caseId: caseId);
 
     if (body is Map && body['data'] != null) {
       return CaseDetailsModel.fromJson(body['data']);

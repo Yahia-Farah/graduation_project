@@ -34,8 +34,10 @@ class UserEntity {
   factory UserEntity.fromJson(Map<String, dynamic> json) {
     return UserEntity(
       id: json['id']?.toString() ?? '',
-      firstName: json['firstName']?.toString() ?? json['first_name']?.toString() ?? '',
-      lastName: json['lastName']?.toString() ?? json['last_name']?.toString() ?? '',
+      firstName:
+          json['firstName']?.toString() ?? json['first_name']?.toString() ?? '',
+      lastName:
+          json['lastName']?.toString() ?? json['last_name']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
       age: int.tryParse(json['age']?.toString() ?? '0') ?? 0,
       role: json['role']?.toString() ?? 'UNKNOWN',
@@ -45,7 +47,12 @@ class UserEntity {
           json['isActive']?.toString().toLowerCase() == 'true' ||
           json['is_active']?.toString().toLowerCase() == 'true',
       assignedCasesCount:
-          int.tryParse(json['assignedCasesCount']?.toString() ?? json['assigned_cases_count']?.toString() ?? '0') ?? 0,
+          int.tryParse(
+            json['assignedCasesCount']?.toString() ??
+                json['assigned_cases_count']?.toString() ??
+                '0',
+          ) ??
+          0,
       court: json['court']?.toString() ?? '',
       isApproved:
           json['isApproved'] == true ||

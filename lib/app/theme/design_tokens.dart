@@ -13,5 +13,4 @@ class DesignTokens {
 
   // ===== Radius =====
   static const double r20 = 20;
-
 }

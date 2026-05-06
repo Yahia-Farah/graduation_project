@@ -30,16 +30,21 @@ class CasesRepoImpl implements CasesRepo {
         return const CasesResult(items: [], pageInfo: PageInfo.empty);
       }
 
-      final dataList = (body['data'] is List) ? (body['data'] as List) : const [];
+      final dataList = (body['data'] is List)
+          ? (body['data'] as List)
+          : const [];
       final items = dataList
           .whereType<Map>()
           .map((e) => CaseModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
 
-      final pageInfoJson =
-      (body['pageInfo'] is Map) ? Map<String, dynamic>.from(body['pageInfo']) : <String, dynamic>{};
+      final pageInfoJson = (body['pageInfo'] is Map)
+          ? Map<String, dynamic>.from(body['pageInfo'])
+          : <String, dynamic>{};
 
-      final pageInfo = pageInfoJson.isEmpty ? PageInfo.empty : PageInfo.fromJson(pageInfoJson);
+      final pageInfo = pageInfoJson.isEmpty
+          ? PageInfo.empty
+          : PageInfo.fromJson(pageInfoJson);
 
       return CasesResult(items: items, pageInfo: pageInfo);
     } on DioException catch (e) {

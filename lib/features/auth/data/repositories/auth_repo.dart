@@ -10,10 +10,7 @@ abstract class AuthRepo {
     required String confirmPassword,
   });
 
-  Future<void> verifyOtp({
-    required String email,
-    required String otpCode,
-  });
+  Future<void> verifyOtp({required String email, required String otpCode});
 }
 
 class AuthResult {
@@ -21,11 +18,13 @@ class AuthResult {
   final String refreshToken;
   final String userId;
   final String role;
+  final String userName;
 
   AuthResult({
     required this.accessToken,
     required this.refreshToken,
     required this.userId,
     required this.role,
+    required this.userName,
   });
 }

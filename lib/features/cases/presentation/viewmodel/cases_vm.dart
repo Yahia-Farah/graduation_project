@@ -101,6 +101,7 @@ class CasesVm extends Notifier<CasesState> {
       );
     }
   }
+
   void setStatusFilter(String status) {
     state = state.copyWith(statusFilter: status, page: 0);
     load();

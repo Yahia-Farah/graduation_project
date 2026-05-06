@@ -1,5 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import '../../../../app/theme/design_tokens.dart';
+import '../widgets/auth_input.dart';
 
 class ForgotPasswordView extends StatelessWidget {
   const ForgotPasswordView({super.key, required this.onGoLogin});
@@ -20,7 +21,6 @@ class ForgotPasswordView extends StatelessWidget {
           'نسيت كلمة المرور',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontFamily: 'Amiri',
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: DesignTokens.black,
@@ -28,15 +28,17 @@ class ForgotPasswordView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        const Text('البريد الإلكتروني', style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.gray)),
-        const SizedBox(height: 6),
-        TextBox(placeholder: 'ادخل البريد الإلكتروني'),
+        const AuthInput(
+          placeholder: 'البريد الإلكتروني',
+        ),
         const SizedBox(height: 18),
 
         FilledButton(
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
-            padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 12)),
+            padding: WidgetStateProperty.all(
+              const EdgeInsets.symmetric(vertical: 12),
+            ),
             shape: WidgetStateProperty.all(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -44,7 +46,10 @@ class ForgotPasswordView extends StatelessWidget {
           onPressed: () {},
           child: const Text(
             'إرسال رابط الاستعادة',
-            style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.white, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              color: DesignTokens.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
 
@@ -53,7 +58,7 @@ class ForgotPasswordView extends StatelessWidget {
           onPressed: onGoLogin,
           child: const Text(
             'رجوع لتسجيل الدخول',
-            style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.brown),
+            style: TextStyle(color: DesignTokens.brown),
           ),
         ),
       ],

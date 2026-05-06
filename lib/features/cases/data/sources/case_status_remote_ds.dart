@@ -11,10 +11,7 @@ class CaseStatusRemoteDs {
   }) async {
     final path = _pathForRole(role, caseId);
 
-    final res = await _dio.patch(
-      path,
-      data: {"status": status},
-    );
+    final res = await _dio.patch(path, data: {"status": status});
 
     return res.data;
   }
@@ -26,7 +23,7 @@ class CaseStatusRemoteDs {
       case 'JUDGE':
         return '/v1/judges/case/$caseId/status';
       default:
-      // المحامي غالبًا مش مسموح له يغير status
+        // المحامي غالبًا مش مسموح له يغير status
         return '/v1/lawyer/cases/$caseId/status';
     }
   }

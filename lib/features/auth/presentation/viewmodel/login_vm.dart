@@ -85,12 +85,15 @@ class LoginVm extends Notifier<LoginState> {
         password: state.password,
       );
 
-      ref.read(authSessionProvider.notifier).setSession(
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        userId: result.userId,
-        role: result.role,
-      );
+      ref
+          .read(authSessionProvider.notifier)
+          .setSession(
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+            userId: result.userId,
+            role: result.role,
+            userName: result.userName,
+          );
 
       state = state.copyWith(submitting: false);
       // ignore: avoid_print

@@ -1,10 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../app/shell/home_shell.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../viewmodel/auth_session.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'otp_view.dart';
 import 'forgot_password_view.dart';
 import 'login_view.dart';
@@ -45,10 +43,13 @@ class _AuthShellState extends ConsumerState<AuthShell> {
               clipBehavior: Clip.antiAlias,
               child: Row(
                 children: [
-                   Expanded(
+                  Expanded(
                     flex: 5,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 56.w, vertical: 24.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 56.w,
+                        vertical: 24.h,
+                      ),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 100),
                         child: _buildForm(),
@@ -56,7 +57,6 @@ class _AuthShellState extends ConsumerState<AuthShell> {
                     ),
                   ),
                   Expanded(flex: 8, child: _LeftImage()),
-
                 ],
               ),
             ),
@@ -99,7 +99,9 @@ class _AuthShellState extends ConsumerState<AuthShell> {
               context: context,
               builder: (ctx) => ContentDialog(
                 title: const Text('نجاح'),
-                content: const Text('تم تفعيل الحساب بنجاح، يمكنك الآن تسجيل الدخول.'),
+                content: const Text(
+                  'تم تفعيل الحساب بنجاح، يمكنك الآن تسجيل الدخول.',
+                ),
                 actions: [
                   FilledButton(
                     onPressed: () {

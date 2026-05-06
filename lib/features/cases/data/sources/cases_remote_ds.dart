@@ -26,7 +26,6 @@ class CasesRemoteDs {
     return res.data;
   }
 
-
   String _pathForRole(String role) {
     switch (role.toUpperCase()) {
       case 'ADMIN':
@@ -36,7 +35,7 @@ class CasesRemoteDs {
       case 'LAWYER':
         return '/v1/lawyer/cases';
       default:
-      // لو حصل role غير معروف
+        // لو حصل role غير معروف
         return '/v1/lawyer/cases';
     }
   }

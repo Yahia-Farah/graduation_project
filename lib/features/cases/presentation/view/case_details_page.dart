@@ -44,8 +44,12 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
   Widget build(BuildContext context) {
     final st = ref.watch(caseDetailsVmProvider);
 
-    if (st.loading) return const ScaffoldPage(content: Center(child: ProgressRing()));
-    if (st.error != null) return ScaffoldPage(content: Center(child: Text(st.error!)));
+    if (st.loading) {
+      return const ScaffoldPage(content: Center(child: ProgressRing()));
+    }
+    if (st.error != null) {
+      return ScaffoldPage(content: Center(child: Text(st.error!)));
+    }
     final data = st.data!;
 
     return Directionality(
@@ -58,22 +62,31 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
             Container(
               height: 60,
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              color: DesignTokens.beige, // using beige as placeholder for yellow top bar
+              color: DesignTokens
+                  .beige, // using beige as placeholder for yellow top bar
               child: Row(
                 children: [
                   Text(
                     'قضية رقم #\${data.caseNumber} - جنايات',
-                    style: const TextStyle(fontFamily: 'Amiri', fontSize: 20, fontWeight: FontWeight.bold, color: DesignTokens.brown),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: DesignTokens.brown,
+                    ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(FluentIcons.chevron_right, size: 20, color: DesignTokens.brown),
+                    icon: const Icon(
+                      FluentIcons.chevron_right,
+                      size: 20,
+                      color: DesignTokens.brown,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-            
+
             // Layout (3 columns)
             Expanded(
               child: Row(
@@ -84,7 +97,9 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
                     flex: 3,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border(left: BorderSide(color: DesignTokens.beige, width: 2)),
+                        border: Border(
+                          left: BorderSide(color: DesignTokens.beige, width: 2),
+                        ),
                       ),
                       child: _buildAIAssistantColumn(),
                     ),
@@ -95,17 +110,16 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
                     flex: 5,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border(left: BorderSide(color: DesignTokens.beige, width: 2)),
+                        border: Border(
+                          left: BorderSide(color: DesignTokens.beige, width: 2),
+                        ),
                       ),
                       child: _buildPDFViewerColumn(),
                     ),
                   ),
 
                   // Left (actually Right in RTL) Column (Files Explorer) - 25% width
-                  Expanded(
-                    flex: 2,
-                    child: _buildFilesColumn(data),
-                  ),
+                  Expanded(flex: 2, child: _buildFilesColumn(data)),
                 ],
               ),
             ),
@@ -123,9 +137,16 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
           color: DesignTokens.brown,
           padding: const EdgeInsets.symmetric(vertical: 12),
           alignment: Alignment.center,
-          child: const Text('مساعد الذكاء الاصطناعي', style: TextStyle(color: Colors.white, fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16)),
+          child: const Text(
+            'مساعد الذكاء الاصطناعي',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
         ),
-        
+
         // Tabs
         Row(
           children: [
@@ -135,7 +156,14 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: _aiTabIndex == 0 ? DesignTokens.brown : Colors.transparent, width: 2)),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: _aiTabIndex == 0
+                            ? DesignTokens.brown
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: Row(
@@ -143,7 +171,17 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
                     children: [
                       const Icon(FluentIcons.read, size: 14),
                       const SizedBox(width: 8),
-                      Text('الملخص', style: TextStyle(fontFamily: 'Amiri', fontWeight: _aiTabIndex == 0 ? FontWeight.bold : FontWeight.normal, color: _aiTabIndex == 0 ? DesignTokens.brown : DesignTokens.gray)),
+                      Text(
+                        'الملخص',
+                        style: TextStyle(
+                          fontWeight: _aiTabIndex == 0
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _aiTabIndex == 0
+                              ? DesignTokens.brown
+                              : DesignTokens.gray,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -155,7 +193,14 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: _aiTabIndex == 1 ? DesignTokens.brown : Colors.transparent, width: 2)),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: _aiTabIndex == 1
+                            ? DesignTokens.brown
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: Row(
@@ -163,7 +208,17 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
                     children: [
                       const Icon(FluentIcons.set_action, size: 14),
                       const SizedBox(width: 8),
-                      Text('التحليل', style: TextStyle(fontFamily: 'Amiri', fontWeight: _aiTabIndex == 1 ? FontWeight.bold : FontWeight.normal, color: _aiTabIndex == 1 ? DesignTokens.brown : DesignTokens.gray)),
+                      Text(
+                        'التحليل',
+                        style: TextStyle(
+                          fontWeight: _aiTabIndex == 1
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _aiTabIndex == 1
+                              ? DesignTokens.brown
+                              : DesignTokens.gray,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -190,7 +245,10 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
         children: [
           ProgressRing(),
           SizedBox(height: 16),
-          Text('جاري تحليل القضية ©', style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.brown)),
+          Text(
+            'جاري تحليل القضية ©',
+            style: TextStyle(color: DesignTokens.brown),
+          ),
         ],
       );
     }
@@ -199,20 +257,26 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('لم يتم إجراء تحليل لهذه القضية بعد، اضغط على الزر لبدء التحليل', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.brown)),
+          const Text(
+            'لم يتم إجراء تحليل لهذه القضية بعد، اضغط على الزر لبدء التحليل',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: DesignTokens.brown),
+          ),
           const SizedBox(height: 16),
           FilledButton(
-            style: ButtonStyle(backgroundColor: WidgetStateProperty.all(DesignTokens.brown)),
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
+            ),
             onPressed: _startAnalysis,
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('حلل الآن', style: TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold)),
+                Text('حلل الآن', style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 8),
                 Icon(FluentIcons.share, size: 14),
               ],
             ),
-          )
+          ),
         ],
       );
     }
@@ -239,7 +303,10 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
       return ListView(
         children: [
           _buildAISection('القرار المقترح: [إدانة]', []),
-          _buildAISection('العقوبة المقترحة: السجن المشدد لمدة 5 سنوات + العزل من الوظيفة', []),
+          _buildAISection(
+            'العقوبة المقترحة: السجن المشدد لمدة 5 سنوات + العزل من الوظيفة',
+            [],
+          ),
           _buildAISection('٠١. الحيثيات: اتساق الأدلة المادية', [
             'استنتاج الذكاء الاصطناعي: كشف التحليل الجنائي الرقمي...',
             'السند القانوني: هذا الاستنتاج يستوفي الركن المادي...',
@@ -258,18 +325,41 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16, color: DesignTokens.brown)),
-          const SizedBox(height: 8),
-          ...bulletPoints.map((point) => Padding(
-            padding: const EdgeInsets.only(bottom: 4.0, right: 8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('• ', style: TextStyle(color: DesignTokens.brown, fontWeight: FontWeight.bold)),
-                Expanded(child: Text(point, style: const TextStyle(fontFamily: 'Amiri', fontSize: 14, color: DesignTokens.brown))),
-              ],
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: DesignTokens.brown,
             ),
-          )),
+          ),
+          const SizedBox(height: 8),
+          ...bulletPoints.map(
+            (point) => Padding(
+              padding: const EdgeInsets.only(bottom: 4.0, right: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '• ',
+                    style: TextStyle(
+                      color: DesignTokens.brown,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      point,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: DesignTokens.brown,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -286,15 +376,52 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
             children: [
               const Icon(FluentIcons.remove, size: 12, color: Colors.white),
               const SizedBox(width: 8),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), color: DesignTokens.beige, child: const Text('100%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: DesignTokens.brown))),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                color: DesignTokens.beige,
+                child: const Text(
+                  '100%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: DesignTokens.brown,
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
               const Icon(FluentIcons.add, size: 12, color: Colors.white),
               const Spacer(),
-              const Text('2', style: TextStyle(color: Colors.white, fontSize: 12)),
-              const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('/', style: TextStyle(color: Colors.white, fontSize: 12))),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), color: DesignTokens.beige, child: const Text('1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: DesignTokens.brown))),
+              const Text(
+                '2',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  '/',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                color: DesignTokens.beige,
+                child: const Text(
+                  '1',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: DesignTokens.brown,
+                  ),
+                ),
+              ),
               const Spacer(),
-              const Text('اسم الملف', style: TextStyle(color: Colors.white, fontFamily: 'Amiri', fontWeight: FontWeight.bold)),
+              const Text(
+                'اسم الملف',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(width: 8),
               const Icon(FluentIcons.document, size: 14, color: Colors.white),
             ],
@@ -307,14 +434,29 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
             // Placeholder for PDF Viewer Map
             child: Container(
               margin: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)]),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(FluentIcons.pdf, size: 64, color: DesignTokens.gray),
+                  const Icon(
+                    FluentIcons.pdf,
+                    size: 64,
+                    color: DesignTokens.gray,
+                  ),
                   const SizedBox(height: 16),
-                  Text('PDF Viewer Placeholder', style: TextStyle(fontFamily: 'Amiri', color: DesignTokens.gray, fontSize: 18)),
+                  Text(
+                    'PDF Viewer Placeholder',
+                    style: TextStyle(color: DesignTokens.gray, fontSize: 18),
+                  ),
                 ],
               ),
             ),
@@ -335,7 +477,14 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('جميع الملفات', style: TextStyle(color: Colors.white, fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                'جميع الملفات',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
               SizedBox(width: 8),
               Icon(FluentIcons.fabric_folder, color: Colors.white, size: 14),
             ],
@@ -345,9 +494,15 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildFolder('ملفات القضية', data.caseFiles.map((e) => e.fileName).toList()),
+              _buildFolder(
+                'ملفات القضية',
+                data.caseFiles.map((e) => e.fileName).toList(),
+              ),
               const SizedBox(height: 16),
-              _buildFolder('ملفات الدفاع', data.defenseFiles.map((e) => e.fileName).toList()),
+              _buildFolder(
+                'ملفات الدفاع',
+                data.defenseFiles.map((e) => e.fileName).toList(),
+              ),
             ],
           ),
         ),
@@ -362,24 +517,45 @@ class _CaseDetailsPageState extends ConsumerState<CaseDetailsPage> {
       children: [
         Row(
           children: [
-            const Icon(FluentIcons.chevron_down, size: 10, color: DesignTokens.brown),
+            const Icon(
+              FluentIcons.chevron_down,
+              size: 10,
+              color: DesignTokens.brown,
+            ),
             const SizedBox(width: 8),
-            Text(folderName, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.bold, fontSize: 16, color: DesignTokens.brown)),
+            Text(
+              folderName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: DesignTokens.brown,
+              ),
+            ),
             const Spacer(),
-            const Icon(FluentIcons.fabric_folder, size: 16, color: DesignTokens.brown),
+            const Icon(
+              FluentIcons.fabric_folder,
+              size: 16,
+              color: DesignTokens.brown,
+            ),
           ],
         ),
         const SizedBox(height: 8),
-        ...files.map((file) => Padding(
-          padding: const EdgeInsets.only(right: 24, bottom: 8),
-          child: Row(
-            children: [
-              Text(file, style: const TextStyle(fontFamily: 'Amiri', color: DesignTokens.brown)),
-              const Spacer(),
-              const Icon(FluentIcons.page, size: 14, color: DesignTokens.brown),
-            ],
+        ...files.map(
+          (file) => Padding(
+            padding: const EdgeInsets.only(right: 24, bottom: 8),
+            child: Row(
+              children: [
+                Text(file, style: const TextStyle(color: DesignTokens.brown)),
+                const Spacer(),
+                const Icon(
+                  FluentIcons.page,
+                  size: 14,
+                  color: DesignTokens.brown,
+                ),
+              ],
+            ),
           ),
-        )),
+        ),
       ],
     );
   }

@@ -6,11 +6,7 @@ import '../viewmodel/otp_vm.dart';
 import '../widgets/auth_input.dart';
 
 class OtpView extends ConsumerWidget {
-  const OtpView({
-    super.key,
-    required this.email,
-    required this.onVerified,
-  });
+  const OtpView({super.key, required this.email, required this.onVerified});
 
   final String email;
   final VoidCallback onVerified;
@@ -41,7 +37,6 @@ class OtpView extends ConsumerWidget {
           const Text(
             'تأكيد الحساب',
             style: TextStyle(
-              fontFamily: 'Amiri',
               fontSize: 24,
               fontWeight: FontWeight.w700,
               color: DesignTokens.brown,
@@ -51,11 +46,7 @@ class OtpView extends ConsumerWidget {
           Text(
             'تم إرسال رمز التحقق إلى:\n$email',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 16,
-              color: DesignTokens.gray,
-            ),
+            style: const TextStyle(fontSize: 16, color: DesignTokens.gray),
           ),
           const SizedBox(height: 24),
           AuthInput(
@@ -69,9 +60,7 @@ class OtpView extends ConsumerWidget {
             height: 56,
             child: FilledButton(
               style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(
-                  DesignTokens.brown,
-                ),
+                backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
                 shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -84,7 +73,6 @@ class OtpView extends ConsumerWidget {
                   : const Text(
                       'تأكيد',
                       style: TextStyle(
-                        fontFamily: 'Amiri',
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: DesignTokens.white,

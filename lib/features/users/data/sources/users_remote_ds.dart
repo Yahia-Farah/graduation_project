@@ -33,21 +33,24 @@ class UsersRemoteDsImpl implements UsersRemoteDs {
           break;
         }
       }
-      
+
       // If still empty, check for Java Spring nested page structures: { "data": { "content": [...] } }
       if (rawList.isEmpty && responseData.containsKey('data')) {
         final nestedData = responseData['data'];
         if (nestedData is Map) {
-          if (nestedData.containsKey('content') && nestedData['content'] is List) {
-             rawList = nestedData['content'] as List;
-          } else if (nestedData.containsKey('items') && nestedData['items'] is List) {
-             rawList = nestedData['items'] as List;
+          if (nestedData.containsKey('content') &&
+              nestedData['content'] is List) {
+            rawList = nestedData['content'] as List;
+          } else if (nestedData.containsKey('items') &&
+              nestedData['items'] is List) {
+            rawList = nestedData['items'] as List;
           } else {
-             // Just in case the backend actually returned a single object dictionary inside data
-             // We ensure we don't throw cast errors if keys like "totalElements" indicate it's empty pagination
-             if (!nestedData.containsKey('totalElements') && !nestedData.containsKey('totalPages')) {
-               return [UserEntity.fromJson(nestedData.cast<String, dynamic>())];
-             }
+            // Just in case the backend actually returned a single object dictionary inside data
+            // We ensure we don't throw cast errors if keys like "totalElements" indicate it's empty pagination
+            if (!nestedData.containsKey('totalElements') &&
+                !nestedData.containsKey('totalPages')) {
+              return [UserEntity.fromJson(nestedData.cast<String, dynamic>())];
+            }
           }
         }
       }

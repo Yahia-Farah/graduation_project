@@ -52,12 +52,10 @@ class CaseDetailsVm extends Notifier<CaseDetailsState> {
       final data = await repo.getDetails(caseId);
       state = state.copyWith(loading: false, data: data);
     } catch (e) {
-      state = state.copyWith(
-        loading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(loading: false, error: e.toString());
     }
   }
+
   Future<void> changeStatus({
     required String caseId,
     required CaseStatus newStatus,
@@ -106,6 +104,6 @@ class CaseDetailsVm extends Notifier<CaseDetailsState> {
   }
 }
 
-final caseDetailsVmProvider =
-NotifierProvider<CaseDetailsVm, CaseDetailsState>(
-    CaseDetailsVm.new);
+final caseDetailsVmProvider = NotifierProvider<CaseDetailsVm, CaseDetailsState>(
+  CaseDetailsVm.new,
+);

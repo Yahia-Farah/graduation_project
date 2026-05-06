@@ -7,9 +7,12 @@ class AuthRepoImpl implements AuthRepo {
   final AuthRemoteDs _remote;
 
   @override
-  Future<AuthResult> login({required String email, required String password}) async {
+  Future<AuthResult> login({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final root = await _remote.login(email: email, password: password);
+      final root = await _remote.login(email: email.toLowerCase(), password: password);
 
       if (root['success'] != true) {
         throw Exception((root['message'] ?? 'Login failed').toString());
@@ -27,11 +30,30 @@ class AuthRepoImpl implements AuthRepo {
         throw Exception('Missing token');
       }
 
+      // Fetch user profile to get the name (login response doesn't include it)
+      String userName = '';
+      try {
+        final profile = await _remote.getUserProfile(
+          userId: id,
+          role: role,
+          accessToken: access,
+        );
+        final profileData = profile['data'];
+        if (profileData is Map) {
+          final first = (profileData['firstName'] ?? profileData['first_name'] ?? '').toString();
+          final last = (profileData['lastName'] ?? profileData['last_name'] ?? '').toString();
+          userName = '$first $last'.trim();
+        }
+      } catch (_) {
+        // If profile fetch fails, continue without name
+      }
+
       return AuthResult(
         accessToken: access,
         refreshToken: refresh,
         userId: id,
         role: role,
+        userName: userName,
       );
     } on DioException catch (e) {
       throw Exception(_mapDioError(e));
@@ -83,7 +105,9 @@ class AuthRepoImpl implements AuthRepo {
       final root = await _remote.verifyOtp(email: email, otpCode: otpCode);
 
       if (root['success'] != true) {
-        throw Exception((root['message'] ?? 'OTP Verification failed').toString());
+        throw Exception(
+          (root['message'] ?? 'OTP Verification failed').toString(),
+        );
       }
     } on DioException catch (e) {
       throw Exception(_mapDioError(e));

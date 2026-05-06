@@ -20,19 +20,25 @@ class AppMenuItem {
 }
 
 const appMenuItems = [
-
   AppMenuItem(
     keyName: 'dashboard',
-    title: 'لوحة التحكم',
+    title: 'لوحة التحكم الرئيسية',
     icon: FluentIcons.home,
     allowedRoles: [UserRole.admin, UserRole.lawyer, UserRole.judge],
   ),
 
   AppMenuItem(
     keyName: 'cases',
-    title: 'القضايا',
+    title: 'إدارة القضايا',
     icon: FluentIcons.branch_search,
     allowedRoles: [UserRole.admin, UserRole.lawyer],
+  ),
+
+  AppMenuItem(
+    keyName: 'access_requests',
+    title: 'إدارة طلبات الوصول',
+    icon: FluentIcons.access_logo,
+    allowedRoles: [UserRole.admin],
   ),
 
   AppMenuItem(
@@ -47,5 +53,19 @@ const appMenuItems = [
     title: 'إدارة المستخدمين',
     icon: FluentIcons.people,
     allowedRoles: [UserRole.admin],
+  ),
+
+  AppMenuItem(
+    keyName: 'profile',
+    title: 'الحساب الشخصي',
+    icon: FluentIcons.contact,
+    allowedRoles: [UserRole.admin, UserRole.lawyer, UserRole.judge],
+  ),
+
+  AppMenuItem(
+    keyName: 'settings',
+    title: 'الإعدادات',
+    icon: FluentIcons.settings,
+    allowedRoles: [UserRole.admin, UserRole.lawyer, UserRole.judge],
   ),
 ];

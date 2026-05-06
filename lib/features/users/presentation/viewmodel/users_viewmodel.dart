@@ -28,7 +28,7 @@ class UsersViewModel extends AsyncNotifier<List<UserEntity>> {
     state = const AsyncValue.loading();
     try {
       final repo = ref.read(usersRepoProvider);
-      
+
       String roleString = 'UNKNOWN';
       if (role == UserRole.admin) roleString = 'ADMIN';
       if (role == UserRole.lawyer) roleString = 'LAWYER';
@@ -50,20 +50,25 @@ class UsersViewModel extends AsyncNotifier<List<UserEntity>> {
       );
 
       await repo.createUser(newUser);
-      ref.invalidateSelf();
+      state = AsyncValue.data(await _fetchUsers());
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
 
   Future<void> deleteUser(String userId) async {
+    // Keep current list so we can do optimistic removal
+    final previousUsers = state.valueOrNull ?? [];
     state = const AsyncValue.loading();
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.deleteUser(userId);
-      ref.invalidateSelf();
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      // Optimistically remove the user from the local list
+      final updated = previousUsers.where((u) => u.id != userId).toList();
+      state = AsyncValue.data(updated);
+    } catch (e) {
+      // Revert to previous state on error
+      state = AsyncValue.data(previousUsers);
     }
   }
 
@@ -72,7 +77,7 @@ class UsersViewModel extends AsyncNotifier<List<UserEntity>> {
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.toggleUserStatus(user.id, !user.isActive);
-      ref.invalidateSelf();
+      state = AsyncValue.data(await _fetchUsers());
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

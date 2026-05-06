@@ -1,19 +1,19 @@
 class DashboardSummary {
-  final int activeCases;
-  final int newCases;
-  final int todayHearings;
+  final int accessRequests;
+  final int lawyerRequests;
+  final int unassignedCases;
 
   const DashboardSummary({
-    required this.activeCases,
-    required this.newCases,
-    required this.todayHearings,
+    required this.accessRequests,
+    required this.lawyerRequests,
+    required this.unassignedCases,
   });
 
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
     return DashboardSummary(
-      activeCases: (json['activeCases'] ?? 0) as int,
-      newCases: (json['newCases'] ?? 0) as int,
-      todayHearings: (json['todayHearings'] ?? 0) as int,
+      accessRequests: (json['accessRequests'] ?? json['access_requests'] ?? json['requests_count'] ?? 0) as int,
+      lawyerRequests: (json['lawyerRequests'] ?? json['lawyer_requests'] ?? json['lawyers_count'] ?? 0) as int,
+      unassignedCases: (json['unassignedCases'] ?? json['unassigned_cases'] ?? json['unassigned_count'] ?? 0) as int,
     );
   }
 }

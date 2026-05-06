@@ -5,13 +5,13 @@ import '../../features/auth/presentation/viewmodel/auth_session.dart';
 import '../theme/design_tokens.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'menu_items.dart';
-import 'menu_items.dart';
 
 class SideMenu extends ConsumerWidget {
   const SideMenu({
     super.key,
     required this.selectedIndex,
-    required this.onChanged, required this.items,
+    required this.onChanged,
+    required this.items,
   });
 
   final int selectedIndex;
@@ -24,10 +24,7 @@ class SideMenu extends ConsumerWidget {
     return Container(
       width: 260.w, // أو DesignTokens.sidebarWidth لو حطيتها
       padding: EdgeInsets.only(right: 16.w),
-      decoration: const BoxDecoration(
-        color: DesignTokens.beige,
-
-      ),
+      decoration: const BoxDecoration(color: DesignTokens.beige),
       child: Column(
         textDirection: TextDirection.rtl,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -60,6 +57,7 @@ class SideMenu extends ConsumerWidget {
             icon: const Icon(FluentIcons.sign_out),
             onPressed: () {
               ref.read(authSessionProvider.notifier).clear();
+              print("auth try  ${ref.read(authSessionProvider).refreshToken}");
             },
           ),
           Text(
@@ -120,7 +118,6 @@ class _MenuItem extends StatelessWidget {
                 style: TextStyle(
                   color: selected ? DesignTokens.beige : DesignTokens.brown,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                  fontFamily: "Amiri",
                   fontSize: 14.sp,
                 ),
               ),

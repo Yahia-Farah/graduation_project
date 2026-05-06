@@ -5,8 +5,9 @@ class AppTheme {
   static FluentThemeData get data {
     return FluentThemeData(
       brightness: Brightness.light,
-      accentColor: AccentColor.swatch({"normal":DesignTokens.brown}),
-      scaffoldBackgroundColor: DesignTokens.beige
+      accentColor: AccentColor.swatch({"normal": DesignTokens.brown}),
+      scaffoldBackgroundColor: DesignTokens.beige,
+      fontFamily: 'Amiri',
     );
   }
 }

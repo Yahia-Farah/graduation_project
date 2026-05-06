@@ -44,7 +44,6 @@ class SignupView extends ConsumerWidget {
               const Text(
                 'إنشاء حساب',
                 style: TextStyle(
-                  fontFamily: 'Amiri',
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: DesignTokens.brown,
@@ -55,11 +54,7 @@ class SignupView extends ConsumerWidget {
               const Text(
                 'انضم إلى منظومة المستشار، يرجى إدخال بياناتك الرسمية بدقة لتفعيل حسابك.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Amiri',
-                  fontSize: 15,
-                  color: DesignTokens.gray,
-                ),
+                style: TextStyle(fontSize: 15, color: DesignTokens.gray),
               ),
               const SizedBox(height: 8),
 
@@ -118,11 +113,7 @@ class SignupView extends ConsumerWidget {
                 Text(
                   state.submitError!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: 13,
-                    color: DesignTokens.red,
-                  ),
+                  style: const TextStyle(fontSize: 13, color: DesignTokens.red),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -147,7 +138,6 @@ class SignupView extends ConsumerWidget {
                       : const Text(
                           'إنشاء حساب',
                           style: TextStyle(
-                            fontFamily: 'Amiri',
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: DesignTokens.white,
@@ -162,10 +152,7 @@ class SignupView extends ConsumerWidget {
                 onPressed: onGoLogin,
                 child: const Text(
                   'لديك حساب بالفعل؟ تسجيل الدخول',
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    color: DesignTokens.brown,
-                  ),
+                  style: TextStyle(color: DesignTokens.brown),
                 ),
               ),
             ],

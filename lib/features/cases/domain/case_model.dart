@@ -7,6 +7,7 @@ class CaseModel {
 
   final String? judgeName;
   final String? lawyerName;
+  final String courtRuling;
 
   const CaseModel({
     required this.id,
@@ -16,6 +17,7 @@ class CaseModel {
     required this.createdAt,
     this.judgeName,
     this.lawyerName,
+    this.courtRuling = '',
   });
 
   factory CaseModel.fromJson(Map<String, dynamic> json) {
@@ -24,10 +26,12 @@ class CaseModel {
       caseNumber: (json['caseNumber'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
-      createdAt: DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
+      createdAt:
+          DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
           DateTime.fromMillisecondsSinceEpoch(0),
       judgeName: json['judgeName']?.toString(),
       lawyerName: json['lawyerName']?.toString(),
+      courtRuling: (json['courtRuling'] ?? '').toString(),
     );
   }
 }

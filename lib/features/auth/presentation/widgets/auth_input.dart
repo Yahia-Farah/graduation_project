@@ -1,4 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/theme/design_tokens.dart';
 
 class AuthInput extends StatefulWidget {
@@ -21,7 +22,6 @@ class AuthInput extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final String? errorText;
 
-
   @override
   State<AuthInput> createState() => _AuthInputState();
 }
@@ -29,15 +29,14 @@ class AuthInput extends StatefulWidget {
 class _AuthInputState extends State<AuthInput> {
   @override
   Widget build(BuildContext context) {
-    final hasError =
-        widget.errorText != null && widget.errorText!.isNotEmpty;
+    final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
           width: widget.width,
-          height: 56,
+          height: 64.h,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -45,9 +44,7 @@ class _AuthInputState extends State<AuthInput> {
               color: DesignTokens.white,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: hasError
-                    ? DesignTokens.red
-                    : DesignTokens.beige,
+                color: hasError ? DesignTokens.red : DesignTokens.beige,
                 width: 1.2,
               ),
             ),
@@ -55,22 +52,21 @@ class _AuthInputState extends State<AuthInput> {
               children: [
                 Expanded(
                   child: TextBox(
+                    textDirection: TextDirection.ltr,
                     highlightColor: Colors.transparent,
                     unfocusedColor: Colors.transparent,
                     controller: widget.controller,
                     obscureText: widget.obscureText,
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.start,
                     placeholder: widget.placeholder,
                     onChanged: widget.onChanged, // 👈 هنا
                     style: const TextStyle(
                       fontWeight: FontWeight.w400,
-                      fontFamily: 'Amiri',
                       fontSize: 16,
                       color: DesignTokens.gray,
                     ),
                     placeholderStyle: const TextStyle(
                       fontWeight: FontWeight.w400,
-                      fontFamily: 'Amiri',
                       fontSize: 16,
                       color: DesignTokens.gray,
                     ),
@@ -78,8 +74,7 @@ class _AuthInputState extends State<AuthInput> {
                       const BoxDecoration(
                         color: Colors.transparent,
                         border: Border.fromBorderSide(
-                          BorderSide(
-                              color: Colors.transparent, width: 0),
+                          BorderSide(color: Colors.transparent, width: 0),
                         ),
                       ),
                     ),
@@ -100,11 +95,7 @@ class _AuthInputState extends State<AuthInput> {
           Text(
             widget.errorText!,
             textAlign: TextAlign.right,
-            style: const TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 13,
-              color: DesignTokens.red,
-            ),
+            style: const TextStyle(fontSize: 13, color: DesignTokens.red),
           ),
         ],
       ],

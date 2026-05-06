@@ -24,8 +24,9 @@ class AuthValidators {
     if (pass != confirm) return 'كلمتا المرور غير متطابقتين';
     return null;
   }
+
   static String? nationalId(String v) {
-    if(v.length<14) return 'الرقم القومي غير صحيح';
+    if (v.length < 14) return 'الرقم القومي غير صحيح';
     return null;
   }
 }
