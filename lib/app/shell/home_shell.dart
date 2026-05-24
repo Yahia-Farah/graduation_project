@@ -8,6 +8,8 @@ import '../../features/cases/presentation/view/cases_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/dashboard/presentation/judge_dashboard_page.dart';
 import '../../features/users/presentation/view/users_management_page.dart';
+import '../../features/users/presentation/view/lawyers_management_page.dart';
+import '../../features/users/presentation/view/judges_management_page.dart';
 import '../home_nav_provider.dart';
 import '../theme/design_tokens.dart';
 import 'menu_items.dart';
@@ -31,14 +33,17 @@ class HomeShell extends ConsumerWidget {
         .where((item) => item.canAccess(role))
         .toList();
 
+    // Build a flat list of navigable items (same logic as SideMenu).
+    final flatItems = _flattenItems(visibleItems);
+
     final selectedIndex = ref.watch(homeNavIndexProvider);
 
     final safeIndex = selectedIndex.clamp(
       0,
-      visibleItems.isEmpty ? 0 : visibleItems.length - 1,
+      flatItems.isEmpty ? 0 : flatItems.length - 1,
     );
 
-    final currentItem = visibleItems[safeIndex];
+    final currentItem = flatItems[safeIndex];
 
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -73,6 +78,20 @@ class HomeShell extends ConsumerWidget {
     );
   }
 
+  /// Flattens the menu tree into a list of navigable items.
+  /// Parent items with children are replaced by their children.
+  List<AppMenuItem> _flattenItems(List<AppMenuItem> items) {
+    final flat = <AppMenuItem>[];
+    for (final item in items) {
+      if (item.hasChildren) {
+        flat.addAll(item.children);
+      } else {
+        flat.add(item);
+      }
+    }
+    return flat;
+  }
+
   Widget buildPage(String key, UserRole role) {
     switch (key) {
       case 'dashboard':
@@ -91,6 +110,12 @@ class HomeShell extends ConsumerWidget {
 
       case 'users':
         return const UsersManagementPage();
+
+      case 'users_judges':
+        return const JudgesManagementPage();
+
+      case 'users_lawyers':
+        return const LawyersManagementPage();
 
       case 'profile':
         return const Center(

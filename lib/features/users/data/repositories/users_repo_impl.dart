@@ -13,6 +13,16 @@ class UsersRepoImpl implements UsersRepo {
   }
 
   @override
+  Future<List<UserEntity>> getLawyers() {
+    return remoteDs.getLawyers();
+  }
+
+  @override
+  Future<List<UserEntity>> getJudges() {
+    return remoteDs.getJudges();
+  }
+
+  @override
   Future<UserEntity> createUser(UserEntity user) {
     return remoteDs.createUser(user);
   }
@@ -25,5 +35,10 @@ class UsersRepoImpl implements UsersRepo {
   @override
   Future<void> deleteUser(String userId) {
     return remoteDs.deleteUser(userId);
+  }
+
+  @override
+  Future<void> reviewLawyer(String lawyerId, bool isApproved) {
+    return remoteDs.reviewLawyer(lawyerId, isApproved);
   }
 }

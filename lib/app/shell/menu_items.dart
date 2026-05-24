@@ -6,17 +6,22 @@ class AppMenuItem {
   final String title;
   final IconData icon;
   final List<UserRole> allowedRoles;
+  final List<AppMenuItem> children;
 
   const AppMenuItem({
     required this.keyName,
     required this.title,
     required this.icon,
     required this.allowedRoles,
+    this.children = const [],
   });
 
   bool canAccess(UserRole role) {
     return allowedRoles.contains(role);
   }
+
+  /// Whether this item has child sub-items.
+  bool get hasChildren => children.isNotEmpty;
 }
 
 const appMenuItems = [
@@ -53,6 +58,20 @@ const appMenuItems = [
     title: 'إدارة المستخدمين',
     icon: FluentIcons.people,
     allowedRoles: [UserRole.admin],
+    children: [
+      AppMenuItem(
+        keyName: 'users_judges',
+        title: 'قضاة',
+        icon: FluentIcons.people,
+        allowedRoles: [UserRole.admin],
+      ),
+      AppMenuItem(
+        keyName: 'users_lawyers',
+        title: 'محامين',
+        icon: FluentIcons.people,
+        allowedRoles: [UserRole.admin],
+      ),
+    ],
   ),
 
   AppMenuItem(

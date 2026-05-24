@@ -77,7 +77,9 @@ class JudgeDashboardPage extends ConsumerWidget {
                   height: 40.h,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border.all(color: DesignTokens.brown.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: DesignTokens.brown.withValues(alpha: 0.3),
+                    ),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: TextBox(
@@ -87,11 +89,19 @@ class JudgeDashboardPage extends ConsumerWidget {
                     unfocusedColor: Colors.transparent,
                     prefix: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.w),
-                      child: Icon(FluentIcons.calendar, size: 16.sp, color: DesignTokens.gray),
+                      child: Icon(
+                        FluentIcons.calendar,
+                        size: 16.sp,
+                        color: DesignTokens.gray,
+                      ),
                     ),
                     suffix: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.w),
-                      child: Icon(FluentIcons.search, size: 16.sp, color: DesignTokens.gray),
+                      child: Icon(
+                        FluentIcons.search,
+                        size: 16.sp,
+                        color: DesignTokens.gray,
+                      ),
                     ),
                     decoration: WidgetStateProperty.all(
                       const BoxDecoration(
@@ -111,7 +121,9 @@ class JudgeDashboardPage extends ConsumerWidget {
                     EdgeInsets.symmetric(horizontal: 32.w, vertical: 10.h),
                   ),
                   shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
                   ),
                 ),
                 onPressed: () {},
@@ -121,7 +133,10 @@ class JudgeDashboardPage extends ConsumerWidget {
                     SizedBox(width: 8.w),
                     Text(
                       'حلل الآن',
-                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -144,7 +159,10 @@ class JudgeDashboardPage extends ConsumerWidget {
                   child: Text(
                     'رقم القضية',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -152,7 +170,10 @@ class JudgeDashboardPage extends ConsumerWidget {
                   child: Text(
                     'نوع القضية',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -160,7 +181,10 @@ class JudgeDashboardPage extends ConsumerWidget {
                   child: Text(
                     'تاريخ القضية',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -168,7 +192,10 @@ class JudgeDashboardPage extends ConsumerWidget {
                   child: Text(
                     'حالة القضية',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
               ],
@@ -180,26 +207,53 @@ class JudgeDashboardPage extends ConsumerWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(12.r)),
-                border: Border.all(color: DesignTokens.brown.withValues(alpha: 0.2)),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(12.r),
+                ),
+                border: Border.all(
+                  color: DesignTokens.brown.withValues(alpha: 0.2),
+                ),
               ),
               child: ListView.builder(
                 itemCount: 8,
                 padding: EdgeInsets.zero,
                 itemBuilder: (context, index) {
                   // Mock data variation
-                  final statuses = ['لم يبدأ التحليل', 'جاري التحليل', 'لم يبدأ التحليل', 'جاري التحليل', 'مكتمل', 'لم يبدأ التحليل', 'جاري التحليل', 'مكتمل'];
-                  final types = ['جنايات', 'جنح', 'جنايات', 'جنايات', 'جنح', 'جنح', 'جنايات', 'جنايات'];
+                  final statuses = [
+                    'لم يبدأ التحليل',
+                    'جاري التحليل',
+                    'لم يبدأ التحليل',
+                    'جاري التحليل',
+                    'مكتمل',
+                    'لم يبدأ التحليل',
+                    'جاري التحليل',
+                    'مكتمل',
+                  ];
+                  final types = [
+                    'جنايات',
+                    'جنح',
+                    'جنايات',
+                    'جنايات',
+                    'جنح',
+                    'جنح',
+                    'جنايات',
+                    'جنايات',
+                  ];
 
                   return Container(
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: index == 7 ? Colors.transparent : DesignTokens.brown.withValues(alpha: 0.2),
+                          color: index == 7
+                              ? Colors.transparent
+                              : DesignTokens.brown.withValues(alpha: 0.2),
                         ),
                       ),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 12.h,
+                      horizontal: 16.w,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -277,19 +331,38 @@ class JudgeDashboardPage extends ConsumerWidget {
                 ),
                 child: Text(
                   '1',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.sp),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.sp,
+                  ),
                 ),
               ),
               SizedBox(width: 12.w),
-              Text('2', style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray)),
+              Text(
+                '2',
+                style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+              ),
               SizedBox(width: 12.w),
-              Text('3', style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray)),
+              Text(
+                '3',
+                style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+              ),
               SizedBox(width: 12.w),
-              Text('4', style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray)),
+              Text(
+                '4',
+                style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+              ),
               SizedBox(width: 12.w),
-              Text('...', style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray)),
+              Text(
+                '...',
+                style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+              ),
               SizedBox(width: 12.w),
-              Text('10', style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray)),
+              Text(
+                '10',
+                style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+              ),
               SizedBox(width: 12.w),
               IconButton(
                 icon: const Icon(FluentIcons.chevron_left, size: 12),

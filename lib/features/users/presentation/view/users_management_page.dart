@@ -7,17 +7,22 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'add_user_dialog.dart';
 
 class UsersManagementPage extends ConsumerWidget {
-  const UsersManagementPage({super.key});
+  const UsersManagementPage({super.key, this.roleFilter});
+
+  /// If set, only users whose role matches this value are shown.
+  /// Expected values: 'JUDGE', 'LAWYER', or null (show all).
+  final String? roleFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(usersViewModelProvider);
 
     return ScaffoldPage(
-      header: const PageHeader(
+      header: PageHeader(
         title: Text(
-          'إدارة المستخدمين',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.end,
+          _pageTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       content: Directionality(
@@ -31,25 +36,36 @@ class UsersManagementPage extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'قائمة المستخدمين في النظام',
-                    style: TextStyle(fontSize: 16),
+                  Text(
+                    _subtitleText,
+                    style: const TextStyle(fontSize: 16),
                   ),
-                  FilledButton(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(FluentIcons.add, size: 14.sp),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(FluentIcons.refresh, size: 16.sp),
+                        onPressed: () => ref.invalidate(usersViewModelProvider),
+                      ),
+                      if (roleFilter != 'LAWYER') ...[
                         SizedBox(width: 8.w),
-                        const Text('إضافة مستخدم جديد'),
+                        FilledButton(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(FluentIcons.add, size: 14.sp),
+                              SizedBox(width: 8.w),
+                              const Text('إضافة مستخدم جديد'),
+                            ],
+                          ),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => const AddUserDialog(),
+                            );
+                          },
+                        ),
                       ],
-                    ),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => const AddUserDialog(),
-                      );
-                    },
+                    ],
                   ),
                 ],
               ),
@@ -58,13 +74,14 @@ class UsersManagementPage extends ConsumerWidget {
               Expanded(
                 child: state.when(
                   data: (users) {
-                    if (users.isEmpty) {
+                    final filtered = _applyFilter(users);
+                    if (filtered.isEmpty) {
                       return const Center(child: Text('لا يوجد مستخدمين'));
                     }
                     return ListView.builder(
-                      itemCount: users.length,
+                      itemCount: filtered.length,
                       itemBuilder: (context, index) {
-                        return _buildUserCard(context, ref, users[index]);
+                        return _buildUserCard(context, ref, filtered[index]);
                       },
                     );
                   },
@@ -90,6 +107,36 @@ class UsersManagementPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Returns the page header title based on the active role filter.
+  String get _pageTitle {
+    switch (roleFilter) {
+      case 'JUDGE':
+        return 'إدارة المستخدمين - قضاة';
+      case 'LAWYER':
+        return 'إدارة المستخدمين - محامين';
+      default:
+        return 'إدارة المستخدمين';
+    }
+  }
+
+  /// Returns a contextual subtitle based on the active role filter.
+  String get _subtitleText {
+    switch (roleFilter) {
+      case 'JUDGE':
+        return 'قائمة القضاة في النظام';
+      case 'LAWYER':
+        return 'قائمة المحامين في النظام';
+      default:
+        return 'قائمة المستخدمين في النظام';
+    }
+  }
+
+  /// Filters users by [roleFilter] if provided.
+  List<UserEntity> _applyFilter(List<UserEntity> users) {
+    if (roleFilter == null) return users;
+    return users.where((u) => u.role.toUpperCase() == roleFilter).toList();
   }
 
   Widget _buildUserCard(BuildContext context, WidgetRef ref, UserEntity user) {

@@ -3,9 +3,12 @@ import '../../domain/user_entity.dart';
 
 abstract class UsersRemoteDs {
   Future<List<UserEntity>> getUsers();
+  Future<List<UserEntity>> getLawyers();
+  Future<List<UserEntity>> getJudges();
   Future<UserEntity> createUser(UserEntity user);
   Future<void> toggleUserStatus(String userId, bool activate);
   Future<void> deleteUser(String userId);
+  Future<void> reviewLawyer(String lawyerId, bool isApproved);
 }
 
 class UsersRemoteDsImpl implements UsersRemoteDs {
@@ -82,6 +85,121 @@ class UsersRemoteDsImpl implements UsersRemoteDs {
   }
 
   @override
+  Future<List<UserEntity>> getLawyers() async {
+    // Fetch specifically lawyers with a large size to get all
+    final res = await dio.get('/v1/admin/users/lawyers?size=1000');
+    final responseData = res.data;
+    List<dynamic> rawList = [];
+
+    if (responseData is List) {
+      rawList = responseData;
+    } else if (responseData is Map) {
+      for (final key in ['data', 'content', 'users', 'items']) {
+        if (responseData[key] is List) {
+          rawList = responseData[key] as List;
+          break;
+        }
+      }
+      if (rawList.isEmpty && responseData.containsKey('data')) {
+        final nestedData = responseData['data'];
+        if (nestedData is Map) {
+          if (nestedData.containsKey('content') &&
+              nestedData['content'] is List) {
+            rawList = nestedData['content'] as List;
+          } else if (nestedData.containsKey('items') &&
+              nestedData['items'] is List) {
+            rawList = nestedData['items'] as List;
+          } else if (!nestedData.containsKey('totalElements') &&
+              !nestedData.containsKey('totalPages')) {
+            return [UserEntity.fromJson(nestedData.cast<String, dynamic>())];
+          }
+        }
+      }
+    }
+
+    if (rawList.isNotEmpty) {
+      return rawList.map((e) {
+        try {
+          return UserEntity.fromJson(e as Map<String, dynamic>);
+        } catch (err) {
+          print('Error parsing UserEntity in getLawyers: $err');
+          return UserEntity(
+            id: e['id']?.toString() ?? '',
+            firstName: e['firstName']?.toString() ?? 'Error',
+            lastName: e['lastName']?.toString() ?? '',
+            email: e['email']?.toString() ?? '',
+            age: 0,
+            role: 'LAWYER',
+            isActive: false,
+            assignedCasesCount: 0,
+            court: '',
+            isApproved: false,
+          );
+        }
+      }).toList();
+    }
+
+    return [];
+  }
+
+  @override
+  Future<List<UserEntity>> getJudges() async {
+    final res = await dio.get('/v1/admin/users/judges?size=1000');
+    final responseData = res.data;
+    List<dynamic> rawList = [];
+
+    if (responseData is List) {
+      rawList = responseData;
+    } else if (responseData is Map) {
+      for (final key in ['data', 'content', 'users', 'items']) {
+        if (responseData[key] is List) {
+          rawList = responseData[key] as List;
+          break;
+        }
+      }
+      if (rawList.isEmpty && responseData.containsKey('data')) {
+        final nestedData = responseData['data'];
+        if (nestedData is Map) {
+          if (nestedData.containsKey('content') &&
+              nestedData['content'] is List) {
+            rawList = nestedData['content'] as List;
+          } else if (nestedData.containsKey('items') &&
+              nestedData['items'] is List) {
+            rawList = nestedData['items'] as List;
+          } else if (!nestedData.containsKey('totalElements') &&
+              !nestedData.containsKey('totalPages')) {
+            return [UserEntity.fromJson(nestedData.cast<String, dynamic>())];
+          }
+        }
+      }
+    }
+
+    if (rawList.isNotEmpty) {
+      return rawList.map((e) {
+        try {
+          return UserEntity.fromJson(e as Map<String, dynamic>);
+        } catch (err) {
+          print('Error parsing UserEntity in getJudges: $err');
+          return UserEntity(
+            id: e['id']?.toString() ?? '',
+            firstName: e['firstName']?.toString() ?? 'Error',
+            lastName: e['lastName']?.toString() ?? '',
+            email: e['email']?.toString() ?? '',
+            age: 0,
+            role: 'JUDGE',
+            isActive: false,
+            assignedCasesCount: 0,
+            court: '',
+            isApproved: false,
+          );
+        }
+      }).toList();
+    }
+
+    return [];
+  }
+
+  @override
   Future<UserEntity> createUser(UserEntity user) async {
     final res = await dio.post(
       '/v1/admin/users/users',
@@ -109,5 +227,12 @@ class UsersRemoteDsImpl implements UsersRemoteDs {
   @override
   Future<void> deleteUser(String userId) async {
     await dio.delete('/v1/admin/users/$userId');
+  }
+
+  @override
+  Future<void> reviewLawyer(String lawyerId, bool isApproved) async {
+    // Assuming 'reject' for 'رفض' because using 'approve' for both is likely a typo in the prompt.
+    final action = isApproved ? 'approve' : 'reject';
+    await dio.put('/v1/admin/users/lawyers/$lawyerId/$action');
   }
 }

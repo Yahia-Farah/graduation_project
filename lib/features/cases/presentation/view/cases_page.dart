@@ -87,26 +87,35 @@ class CasesPage extends ConsumerWidget {
               ),
               const Spacer(),
               // Add Case Button
-              FilledButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
-                  padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(FluentIcons.refresh, size: 16),
+                    onPressed: () => ref.invalidate(casesVmProvider),
                   ),
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => const AddCaseDialog(),
-                  );
-                },
-                child: Row(
-                  children: const [
-                    Icon(FluentIcons.add, size: 12),
-                    SizedBox(width: 8),
-                    Text('إضافة قضية جديدة'),
-                  ],
-                ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
+                      padding: WidgetStateProperty.all(
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                    ),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => const AddCaseDialog(),
+                      );
+                    },
+                    child: Row(
+                      children: const [
+                        Icon(FluentIcons.add, size: 12),
+                        SizedBox(width: 8),
+                        Text('إضافة قضية جديدة'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
