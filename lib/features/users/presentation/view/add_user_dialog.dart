@@ -2,7 +2,8 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/domain/user_role.dart';
-import '../viewmodel/users_viewmodel.dart';
+import '../../domain/user_entity.dart';
+import '../viewmodel/judges_viewmodel.dart';
 
 class AddUserDialog extends ConsumerStatefulWidget {
   const AddUserDialog({super.key});
@@ -19,8 +20,6 @@ class _AddUserDialogState extends ConsumerState<AddUserDialog> {
   final _ageCtrl = TextEditingController();
   final _nationalIdCtrl = TextEditingController();
   final _courtCtrl = TextEditingController();
-
-  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -118,29 +117,27 @@ class _AddUserDialogState extends ConsumerState<AddUserDialog> {
           onPressed: () => Navigator.pop(context),
         ),
         FilledButton(
-          onPressed: _isLoading
-              ? null
-              : () async {
-                  setState(() => _isLoading = true);
-                  await ref
-                      .read(usersViewModelProvider.notifier)
-                      .addUser(
-                        firstName: _firstNameCtrl.text.trim(),
-                        lastName: _lastNameCtrl.text.trim(),
-                        email: _emailCtrl.text.trim(),
-                        password: _passwordCtrl.text,
-                        age: int.tryParse(_ageCtrl.text) ?? 30,
-                        nationalId: _nationalIdCtrl.text.trim(),
-                        court: _courtCtrl.text.trim(),
-                        role: UserRole.judge,
-                      );
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                  }
-                },
-          child: _isLoading
-              ? const ProgressRing(strokeWidth: 2)
-              : const Text('حفظ'),
+          onPressed: () {
+            final newUser = UserEntity(
+              id: '',
+              firstName: _firstNameCtrl.text.trim(),
+              lastName: _lastNameCtrl.text.trim(),
+              email: _emailCtrl.text.trim(),
+              password: _passwordCtrl.text,
+              age: int.tryParse(_ageCtrl.text) ?? 30,
+              nationalId: _nationalIdCtrl.text.trim(),
+              court: _courtCtrl.text.trim(),
+              role: 'JUDGE',
+              isActive: true,
+              assignedCasesCount: 0,
+              isApproved: true,
+            );
+            // Fire and forget — list will show ProgressRing immediately
+            ref.read(judgesViewModelProvider.notifier).addUser(newUser);
+            // Close dialog right away
+            Navigator.pop(context);
+          },
+          child: const Text('حفظ'),
         ),
       ],
     );

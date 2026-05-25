@@ -25,50 +25,42 @@ class UsersViewModel extends AsyncNotifier<List<UserEntity>> {
     required String court,
     required UserRole role,
   }) async {
-    state = const AsyncValue.loading();
-    try {
-      final repo = ref.read(usersRepoProvider);
+    final repo = ref.read(usersRepoProvider);
 
-      String roleString = 'UNKNOWN';
-      if (role == UserRole.admin) roleString = 'ADMIN';
-      if (role == UserRole.lawyer) roleString = 'LAWYER';
-      if (role == UserRole.judge) roleString = 'JUDGE';
+    String roleString = 'UNKNOWN';
+    if (role == UserRole.admin) roleString = 'ADMIN';
+    if (role == UserRole.lawyer) roleString = 'LAWYER';
+    if (role == UserRole.judge) roleString = 'JUDGE';
 
-      final newUser = UserEntity(
-        id: '',
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        password: password,
-        age: age,
-        nationalId: nationalId,
-        court: court,
-        role: roleString,
-        isActive: true,
-        assignedCasesCount: 0,
-        isApproved: true,
-      );
+    final newUser = UserEntity(
+      id: '',
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+      age: age,
+      nationalId: nationalId,
+      court: court,
+      role: roleString,
+      isActive: true,
+      assignedCasesCount: 0,
+      isApproved: true,
+    );
 
-      await repo.createUser(newUser);
-      state = AsyncValue.data(await _fetchUsers());
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+    await repo.createUser(newUser);
+    state = AsyncValue.data(await _fetchUsers());
   }
 
   Future<void> deleteUser(String userId) async {
-    // Keep current list so we can do optimistic removal
-    final previousUsers = state.valueOrNull ?? [];
+    final previousList = state.valueOrNull ?? [];
     state = const AsyncValue.loading();
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.deleteUser(userId);
-      // Optimistically remove the user from the local list
-      final updated = previousUsers.where((u) => u.id != userId).toList();
-      state = AsyncValue.data(updated);
-    } catch (e) {
-      // Revert to previous state on error
-      state = AsyncValue.data(previousUsers);
+      final updatedList = previousList.where((u) => u.id != userId).toList();
+      state = AsyncValue.data(updatedList);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 

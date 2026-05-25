@@ -56,11 +56,6 @@ class _LawyersManagementPageState
                 ),
               ),
               const Spacer(),
-              IconButton(
-                icon: const Icon(FluentIcons.refresh, size: 16),
-                onPressed: () => ref.invalidate(lawyersViewModelProvider),
-              ),
-              const SizedBox(width: 8),
               Container(
                 height: 32,
                 padding: const EdgeInsets.symmetric(horizontal: 12),

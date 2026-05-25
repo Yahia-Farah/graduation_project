@@ -81,11 +81,6 @@ class _JudgesManagementPageState
                 ),
               ),
               const SizedBox(width: 16),
-              IconButton(
-                icon: const Icon(FluentIcons.refresh, size: 16),
-                onPressed: () => ref.invalidate(judgesViewModelProvider),
-              ),
-              const SizedBox(width: 8),
               Container(
                 height: 32,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -450,25 +445,60 @@ class _JudgesManagementPageState
     showDialog(
       context: context,
       builder: (ctx) {
-        return ContentDialog(
-          title: const Text('تأكيد الحذف'),
-          content: Text('هل أنت متأكد من حذف القاضي ${user.fullName}؟'),
-          actions: [
-            Button(
-              child: const Text('إلغاء'),
-              onPressed: () => Navigator.pop(ctx),
-            ),
-            FilledButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll<Color>(Colors.red),
-              ),
-              onPressed: () {
-                ref.read(judgesViewModelProvider.notifier).deleteUser(user.id);
-                Navigator.pop(ctx);
-              },
-              child: const Text('حذف'),
-            ),
-          ],
+        bool isDeleting = false;
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return ContentDialog(
+              title: const Text('تأكيد الحذف'),
+              content: Text('هل أنت متأكد من حذف القاضي ${user.fullName}؟'),
+              actions: [
+                Button(
+                  child: const Text('إلغاء'),
+                  onPressed: isDeleting ? null : () => Navigator.pop(ctx),
+                ),
+                FilledButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll<Color>(Colors.red),
+                  ),
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          try {
+                            await ref
+                                .read(judgesViewModelProvider.notifier)
+                                .deleteUser(user.id);
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          } catch (e) {
+                            if (ctx.mounted) {
+                              setDialogState(() => isDeleting = false);
+                              displayInfoBar(
+                                ctx,
+                                builder: (context, close) => InfoBar(
+                                  title: const Text('خطأ'),
+                                  content: Text(e.toString().replaceFirst('Exception: ', '')),
+                                  severity: InfoBarSeverity.error,
+                                  action: IconButton(
+                                    icon: const Icon(FluentIcons.clear),
+                                    onPressed: close,
+                                  ),
+                                ),
+                                duration: const Duration(seconds: 5),
+                              );
+                            }
+                          }
+                        },
+                  child: isDeleting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: ProgressRing(strokeWidth: 2),
+                        )
+                      : const Text('حذف'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

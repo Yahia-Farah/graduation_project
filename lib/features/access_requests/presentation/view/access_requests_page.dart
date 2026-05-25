@@ -1,15 +1,19 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../domain/access_request_entity.dart';
+import '../viewmodel/access_requests_viewmodel.dart';
 
-class AccessRequestsPage extends StatefulWidget {
+class AccessRequestsPage extends ConsumerStatefulWidget {
   const AccessRequestsPage({super.key});
 
   @override
-  State<AccessRequestsPage> createState() => _AccessRequestsPageState();
+  ConsumerState<AccessRequestsPage> createState() => _AccessRequestsPageState();
 }
 
-class _AccessRequestsPageState extends State<AccessRequestsPage> {
+class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
   int _selectedTabIndex = 0; // 0: Pending, 1: Accepted, 2: Rejected
 
   @override
@@ -101,9 +105,18 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
     final isSelected = _selectedTabIndex == index;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedTabIndex = index;
-        });
+        if (_selectedTabIndex == index) return;
+        setState(() => _selectedTabIndex = index);
+        
+        String newStatus;
+        if (index == 0) {
+          newStatus = 'PENDING';
+        } else if (index == 1) {
+          newStatus = 'APPROVED';
+        } else {
+          newStatus = 'REJECTED';
+        }
+        ref.read(accessRequestsViewModelProvider.notifier).changeTab(newStatus);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -128,16 +141,27 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
   }
 
   Widget _buildContent() {
-    if (_selectedTabIndex == 0) {
-      return _buildPendingRequests();
-    } else if (_selectedTabIndex == 1) {
-      return _buildResolvedRequests(isAccepted: true);
-    } else {
-      return _buildResolvedRequests(isAccepted: false);
-    }
+    final asyncRequests = ref.watch(accessRequestsViewModelProvider);
+
+    return asyncRequests.when(
+      data: (requests) {
+        if (requests.isEmpty) {
+          return const Center(child: Text('لا توجد طلبات'));
+        }
+        if (_selectedTabIndex == 0) {
+          return _buildPendingRequests(requests);
+        } else if (_selectedTabIndex == 1) {
+          return _buildResolvedRequests(requests, isAccepted: true);
+        } else {
+          return _buildResolvedRequests(requests, isAccepted: false);
+        }
+      },
+      loading: () => const Center(child: ProgressRing()),
+      error: (e, st) => Center(child: Text('خطأ: $e')),
+    );
   }
 
-  Widget _buildPendingRequests() {
+  Widget _buildPendingRequests(List<AccessRequestEntity> requests) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -196,9 +220,14 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
         // Table Rows
         Expanded(
           child: ListView.builder(
-            itemCount: 8,
+            itemCount: requests.length,
             padding: EdgeInsets.zero,
             itemBuilder: (context, index) {
+              final request = requests[index];
+              final dateStr = request.requestedAt != null
+                  ? DateFormat('yyyy-MM-dd').format(request.requestedAt!)
+                  : '-';
+                  
               return Container(
                 decoration: BoxDecoration(
                   border: Border(
@@ -214,24 +243,24 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
                 ),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       flex: 2,
-                      child: Text('#3287', textAlign: TextAlign.center),
+                      child: Text(request.requestId.substring(0, 8), textAlign: TextAlign.center),
                     ),
-                    const Expanded(
+                    Expanded(
                       flex: 2,
                       child: Text(
-                        'برعي عبدالحميد',
+                        request.lawyerName.isNotEmpty ? request.lawyerName : 'غير معروف',
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    const Expanded(
+                    Expanded(
                       flex: 2,
-                      child: Text('#34627', textAlign: TextAlign.center),
+                      child: Text(request.caseNumber, textAlign: TextAlign.center),
                     ),
-                    const Expanded(
+                    Expanded(
                       flex: 2,
-                      child: Text('25-1-2026', textAlign: TextAlign.center),
+                      child: Text(dateStr, textAlign: TextAlign.center),
                     ),
                     Expanded(
                       flex: 2,
@@ -251,7 +280,9 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
                                 ),
                               ),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              ref.read(accessRequestsViewModelProvider.notifier).approveRequest(request.requestId);
+                            },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [
@@ -275,7 +306,9 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
                                 ),
                               ),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              ref.read(accessRequestsViewModelProvider.notifier).rejectRequest(request.requestId);
+                            },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [
@@ -298,11 +331,17 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
     );
   }
 
-  Widget _buildResolvedRequests({required bool isAccepted}) {
+  Widget _buildResolvedRequests(List<AccessRequestEntity> requests, {required bool isAccepted}) {
     return ListView.builder(
-      itemCount: 8,
+      itemCount: requests.length,
       padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
+        final request = requests[index];
+        final dateStr = request.requestedAt != null
+            ? DateFormat('yyyy-MM-dd').format(request.requestedAt!)
+            : '-';
+        final reqId = request.requestId.length > 8 ? request.requestId.substring(0, 8) : request.requestId;
+        
         return Container(
           decoration: BoxDecoration(
             border: Border(
@@ -334,15 +373,15 @@ class _AccessRequestsPageState extends State<AccessRequestsPage> {
               // Text
               Text(
                 isAccepted
-                    ? 'تم قبول طلب رقم 3476 - المحامي/برعي عبدالحميد - القضية رقم 26483'
-                    : 'تم رفض طلب رقم 3476 - المحامي/برعي عبدالحميد - القضية رقم 26483',
+                    ? 'تم قبول طلب رقم $reqId - المحامي/${request.lawyerName} - القضية رقم ${request.caseNumber}'
+                    : 'تم رفض طلب رقم $reqId - المحامي/${request.lawyerName} - القضية رقم ${request.caseNumber}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               // Date
-              const Text(
-                '22-1-2026',
-                style: TextStyle(color: DesignTokens.gray),
+              Text(
+                dateStr,
+                style: const TextStyle(color: DesignTokens.gray),
               ),
             ],
           ),

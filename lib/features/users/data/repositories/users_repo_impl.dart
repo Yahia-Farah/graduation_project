@@ -4,22 +4,26 @@ import 'users_repo.dart';
 
 class UsersRepoImpl implements UsersRepo {
   final UsersRemoteDs remoteDs;
+  final Set<String> _deletedUserIds = {};
 
   UsersRepoImpl(this.remoteDs);
 
   @override
-  Future<List<UserEntity>> getUsers() {
-    return remoteDs.getUsers();
+  Future<List<UserEntity>> getUsers() async {
+    final users = await remoteDs.getUsers();
+    return users.where((u) => !_deletedUserIds.contains(u.id)).toList();
   }
 
   @override
-  Future<List<UserEntity>> getLawyers() {
-    return remoteDs.getLawyers();
+  Future<List<UserEntity>> getLawyers() async {
+    final lawyers = await remoteDs.getLawyers();
+    return lawyers.where((u) => !_deletedUserIds.contains(u.id)).toList();
   }
 
   @override
-  Future<List<UserEntity>> getJudges() {
-    return remoteDs.getJudges();
+  Future<List<UserEntity>> getJudges() async {
+    final judges = await remoteDs.getJudges();
+    return judges.where((u) => !_deletedUserIds.contains(u.id)).toList();
   }
 
   @override
@@ -33,8 +37,9 @@ class UsersRepoImpl implements UsersRepo {
   }
 
   @override
-  Future<void> deleteUser(String userId) {
-    return remoteDs.deleteUser(userId);
+  Future<void> deleteUser(String userId) async {
+    await remoteDs.deleteUser(userId);
+    _deletedUserIds.add(userId);
   }
 
   @override

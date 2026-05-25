@@ -15,14 +15,15 @@ class LawyersViewModel extends AsyncNotifier<List<UserEntity>> {
   }
 
   Future<void> deleteUser(String userId) async {
-    final previousUsers = state.valueOrNull ?? [];
+    final previousList = state.valueOrNull ?? [];
     state = const AsyncValue.loading();
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.deleteUser(userId);
-      ref.invalidateSelf();
-    } catch (e) {
-      state = AsyncValue.data(previousUsers);
+      final updatedList = previousList.where((u) => u.id != userId).toList();
+      state = AsyncValue.data(updatedList);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
@@ -31,7 +32,7 @@ class LawyersViewModel extends AsyncNotifier<List<UserEntity>> {
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.toggleUserStatus(user.id, !user.isActive);
-      ref.invalidateSelf();
+      state = AsyncValue.data(await _fetchLawyers());
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -42,7 +43,7 @@ class LawyersViewModel extends AsyncNotifier<List<UserEntity>> {
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.reviewLawyer(lawyerId, isApproved);
-      ref.invalidateSelf();
+      state = AsyncValue.data(await _fetchLawyers());
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

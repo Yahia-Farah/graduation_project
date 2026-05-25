@@ -17,6 +17,9 @@ import 'side_menu.dart';
 import 'top_bar.dart';
 
 import '../../features/auth/presentation/viewmodel/user_role_provider.dart';
+import '../../features/users/presentation/viewmodel/judges_viewmodel.dart';
+import '../../features/users/presentation/viewmodel/lawyers_viewmodel.dart';
+import '../../features/cases/presentation/viewmodel/cases_vm.dart';
 
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
@@ -70,6 +73,19 @@ class HomeShell extends ConsumerWidget {
               selectedIndex: safeIndex,
               onChanged: (i) {
                 ref.read(homeNavIndexProvider.notifier).state = i;
+                // Refresh data when navigating to a tab
+                final targetItem = flatItems[i];
+                switch (targetItem.keyName) {
+                  case 'users_judges':
+                    ref.invalidate(judgesViewModelProvider);
+                    break;
+                  case 'users_lawyers':
+                    ref.invalidate(lawyersViewModelProvider);
+                    break;
+                  case 'cases':
+                    ref.invalidate(casesVmProvider);
+                    break;
+                }
               },
             ),
           ],

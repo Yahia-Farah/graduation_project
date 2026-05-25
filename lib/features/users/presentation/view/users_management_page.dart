@@ -40,33 +40,23 @@ class UsersManagementPage extends ConsumerWidget {
                     _subtitleText,
                     style: const TextStyle(fontSize: 16),
                   ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(FluentIcons.refresh, size: 16.sp),
-                        onPressed: () => ref.invalidate(usersViewModelProvider),
+                  if (roleFilter != 'LAWYER')
+                    FilledButton(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(FluentIcons.add, size: 14.sp),
+                          SizedBox(width: 8.w),
+                          const Text('إضافة مستخدم جديد'),
+                        ],
                       ),
-                      if (roleFilter != 'LAWYER') ...[
-                        SizedBox(width: 8.w),
-                        FilledButton(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(FluentIcons.add, size: 14.sp),
-                              SizedBox(width: 8.w),
-                              const Text('إضافة مستخدم جديد'),
-                            ],
-                          ),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => const AddUserDialog(),
-                            );
-                          },
-                        ),
-                      ],
-                    ],
-                  ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => const AddUserDialog(),
+                        );
+                      },
+                    ),
                 ],
               ),
               SizedBox(height: 16.h),

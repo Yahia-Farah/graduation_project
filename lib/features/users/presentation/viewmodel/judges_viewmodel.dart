@@ -14,16 +14,21 @@ class JudgesViewModel extends AsyncNotifier<List<UserEntity>> {
     return await repo.getJudges();
   }
 
-  Future<void> deleteUser(String userId) async {
-    final previousUsers = state.valueOrNull ?? [];
+  Future<void> addUser(UserEntity newUser) async {
     state = const AsyncValue.loading();
-    try {
-      final repo = ref.read(usersRepoProvider);
-      await repo.deleteUser(userId);
-      ref.invalidateSelf();
-    } catch (e) {
-      state = AsyncValue.data(previousUsers);
-    }
+    final repo = ref.read(usersRepoProvider);
+    await repo.createUser(newUser);
+    state = AsyncValue.data(await _fetchJudges());
+  }
+
+  Future<void> deleteUser(String userId) async {
+    final previousList = state.valueOrNull ?? [];
+    state = const AsyncValue.loading();
+    final repo = ref.read(usersRepoProvider);
+    await repo.deleteUser(userId);
+    // Optimistically update the list because the backend GET might return stale data immediately after delete
+    final updatedList = previousList.where((u) => u.id != userId).toList();
+    state = AsyncValue.data(updatedList);
   }
 
   Future<void> toggleUserStatus(UserEntity user) async {
@@ -31,7 +36,7 @@ class JudgesViewModel extends AsyncNotifier<List<UserEntity>> {
     try {
       final repo = ref.read(usersRepoProvider);
       await repo.toggleUserStatus(user.id, !user.isActive);
-      ref.invalidateSelf();
+      state = AsyncValue.data(await _fetchJudges());
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
