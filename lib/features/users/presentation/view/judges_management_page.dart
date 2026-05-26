@@ -43,6 +43,7 @@ class _JudgesManagementPageState
 
           // ─── Search Bar and Add Button ────────────────────────────────────────
           Row(
+
             children: [
               FilledButton(
                 style: ButtonStyle(

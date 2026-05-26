@@ -5,17 +5,57 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/theme/design_tokens.dart';
 import '../../cases/domain/case_model.dart';
 import '../../cases/presentation/viewmodel/cases_vm.dart';
-import '../../cases/presentation/view/case_details_page.dart';
 import '../../cases/presentation/view/widgets/add_case_dialog.dart';
+import '../../cases/presentation/view/widgets/case_details_dialog.dart';
 import 'viewmodel/dashboard_vm.dart';
+import '../../../app/shell/menu_items.dart';
+import '../../../app/home_nav_provider.dart';
+import '../../auth/presentation/viewmodel/user_role_provider.dart';
+import '../../users/presentation/viewmodel/judges_viewmodel.dart';
+import '../../users/presentation/viewmodel/lawyers_viewmodel.dart';
+import '../../access_requests/presentation/viewmodel/access_requests_viewmodel.dart';
+import '../../access_requests/domain/access_request_entity.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
+
+  void _navigateTo(WidgetRef ref, String keyName) {
+    final role = ref.read(userRoleProvider);
+    final visibleItems = appMenuItems.where((item) => item.canAccess(role)).toList();
+    final flatItems = <AppMenuItem>[];
+    for (final item in visibleItems) {
+      if (item.hasChildren) {
+        flatItems.addAll(item.children);
+      } else {
+        flatItems.add(item);
+      }
+    }
+    
+    final index = flatItems.indexWhere((item) => item.keyName == keyName);
+    if (index != -1) {
+      ref.read(homeNavIndexProvider.notifier).state = index;
+      switch (keyName) {
+        case 'users_judges':
+          ref.invalidate(judgesViewModelProvider);
+          break;
+        case 'users_lawyers':
+          ref.invalidate(lawyersViewModelProvider);
+          break;
+        case 'cases':
+          ref.invalidate(casesVmProvider);
+          break;
+        case 'access_requests':
+          ref.invalidate(accessRequestsViewModelProvider);
+          break;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final st = ref.watch(casesVmProvider);
     final dashSt = ref.watch(dashboardVmProvider);
+    final accessReqsSt = ref.watch(accessRequestsViewModelProvider);
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -28,30 +68,33 @@ class DashboardPage extends ConsumerWidget {
               Expanded(
                 child: _StatCard(
                   title: 'طلبات الوصول الي القضايا',
-                  value: dashSt.valueOrNull?.accessRequests.toString() ?? (dashSt.isLoading ? '...' : '-'),
+                  value: dashSt.valueOrNull?.accessRequests.toString().toArabicNumbers() ?? (dashSt.isLoading ? '...' : '-'),
                   subtitle: 'طلب جديد',
                   buttonLabel: 'مراجعة الطلبات',
                   icon: FluentIcons.clipboard_list,
+                  onPressed: () => _navigateTo(ref, 'access_requests'),
                 ),
               ),
               SizedBox(width: 16.w),
               Expanded(
                 child: _StatCard(
                   title: 'طلبات انضمام المحامون',
-                  value: dashSt.valueOrNull?.lawyerRequests.toString() ?? (dashSt.isLoading ? '...' : '-'),
+                  value: dashSt.valueOrNull?.lawyerRequests.toString().toArabicNumbers() ?? (dashSt.isLoading ? '...' : '-'),
                   subtitle: 'طلب جديد',
                   buttonLabel: 'مراجعة الحسابات',
                   icon: FluentIcons.people,
+                  onPressed: () => _navigateTo(ref, 'users_lawyers'),
                 ),
               ),
               SizedBox(width: 16.w),
               Expanded(
                 child: _StatCard(
                   title: 'القضايا الغير موكلة',
-                  value: dashSt.valueOrNull?.unassignedCases.toString() ?? (dashSt.isLoading ? '...' : '-'),
+                  value: dashSt.valueOrNull?.unassignedCases.toString().toArabicNumbers() ?? (dashSt.isLoading ? '...' : '-'),
                   subtitle: 'قضية غير موكلة',
                   buttonLabel: 'بدء التعيين',
                   icon: FluentIcons.info,
+                  onPressed: () => _navigateTo(ref, 'cases'),
                 ),
               ),
             ],
@@ -135,7 +178,7 @@ class DashboardPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () => _navigateTo(ref, 'cases'),
                 child: Text(
                   'عرض الجميع',
                   style: TextStyle(
@@ -177,7 +220,7 @@ class DashboardPage extends ConsumerWidget {
                                 onTap: () {
                                   showDialog(
                                     context: context,
-                                    builder: (_) => _CaseDetailsDialog(c: c),
+                                    builder: (_) => CaseDetailsDialog(c: c),
                                   );
                                 },
                               );
@@ -215,7 +258,7 @@ class DashboardPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () => _navigateTo(ref, 'access_requests'),
                 child: Text(
                   'عرض الجميع',
                   style: TextStyle(
@@ -242,16 +285,23 @@ class DashboardPage extends ConsumerWidget {
                 children: [
                   _AccessRequestsTableHeader(),
                   Expanded(
-                    child: ListView.separated(
-                      itemCount: 4, // placeholder items
-                      separatorBuilder: (_, _) => Container(
-                        height: 1.h,
-                        color: DesignTokens.brown.withValues(alpha: 0.2),
-                      ),
-                      itemBuilder: (context, i) {
-                        return _AccessRequestRow();
-                      },
-                    ),
+                    child: accessReqsSt.isLoading && accessReqsSt.valueOrNull == null
+                        ? const Center(child: ProgressRing())
+                        : ListView.separated(
+                            itemCount: (accessReqsSt.valueOrNull?.length ?? 0).clamp(0, 4),
+                            separatorBuilder: (_, _) => Container(
+                              height: 1.h,
+                              color: DesignTokens.brown.withValues(alpha: 0.2),
+                            ),
+                            itemBuilder: (context, i) {
+                              final req = accessReqsSt.valueOrNull![i];
+                              return _AccessRequestRow(
+                                request: req,
+                                onApprove: () => ref.read(accessRequestsViewModelProvider.notifier).approveRequest(req.requestId),
+                                onReject: () => ref.read(accessRequestsViewModelProvider.notifier).rejectRequest(req.requestId),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -269,6 +319,7 @@ class _StatCard extends StatelessWidget {
   final String subtitle;
   final String buttonLabel;
   final IconData icon;
+  final VoidCallback onPressed;
 
   const _StatCard({
     required this.title,
@@ -276,6 +327,7 @@ class _StatCard extends StatelessWidget {
     required this.subtitle,
     required this.buttonLabel,
     required this.icon,
+    required this.onPressed,
   });
 
   @override
@@ -340,7 +392,7 @@ class _StatCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: onPressed,
                 child: Text(
                   buttonLabel,
                   style: TextStyle(
@@ -431,7 +483,7 @@ class _CaseRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              'جنايات',
+              c.courtRuling.isNotEmpty ? c.courtRuling : 'غير محدد',
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
@@ -449,41 +501,41 @@ class _CaseRow extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // تعيين button
-                Button(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(
-                      DesignTokens.brown,
-                    ),
-                    padding: WidgetStateProperty.all(
-                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
-                    ),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
+                if (c.judgeName == null || c.judgeName!.isEmpty) ...[
+                  // تعيين button
+                  Button(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        DesignTokens.brown,
                       ),
+                      padding: WidgetStateProperty.all(
+                        EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                      ),
+                      shape: WidgetStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                    ),
+                    onPressed: onTap,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          FluentIcons.add_friend,
+                          size: 12.sp,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          'تعيين',
+                          style: TextStyle(color: Colors.white, fontSize: 11.sp),
+                        ),
+                      ],
                     ),
                   ),
-                  onPressed: () {
-                    // TODO: Assign case
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        FluentIcons.add_friend,
-                        size: 12.sp,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        'تعيين',
-                        style: TextStyle(color: Colors.white, fontSize: 11.sp),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 6.w),
+                  SizedBox(width: 6.w),
+                ],
                 // عرض button
                 Button(
                   style: ButtonStyle(
@@ -523,184 +575,7 @@ class _CaseRow extends StatelessWidget {
   String _formatDate(DateTime d) => "${d.day}-${d.month}-${d.year}";
 }
 
-class _CaseDetailsDialog extends StatelessWidget {
-  final CaseModel c;
-  const _CaseDetailsDialog({required this.c});
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 600.w,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8F6F0), // match the beige background in image
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: DesignTokens.brown),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-              child: Row(
-                children: [
-                  // Close button (Left)
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: DesignTokens.brown),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        FluentIcons.cancel,
-                        size: 12.sp,
-                        color: DesignTokens.brown,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  const Spacer(),
-                  // Title (Right)
-                  Text(
-                    'تفاصيل القضية',
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: DesignTokens.brown,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Divider
-            Container(height: 1, color: DesignTokens.brown),
-
-            // Content
-            Padding(
-              padding: EdgeInsets.all(24.w),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left column: الاطراف المعينة
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'الاطراف المعينة',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.sp,
-                            color: DesignTokens.brown,
-                          ),
-                        ),
-                        SizedBox(height: 16.h),
-                        _buildInfoBox('المحامي: عبد العزيز محمد'),
-                        SizedBox(height: 12.h),
-                        _buildInfoBox('القاضي: حمادة عباس'),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 32.w),
-                  // Right column: بيانات القضية
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'بيانات القضية',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.sp,
-                            color: DesignTokens.brown,
-                          ),
-                        ),
-                        SizedBox(height: 16.h),
-                        _buildInfoBox('رقم القضية: #${c.caseNumber}'),
-                        SizedBox(height: 12.h),
-                        _buildInfoBox('نوع القضية: جنايات'),
-                        SizedBox(height: 12.h),
-                        _buildInfoBox(
-                          'تاريخ تسجيل القضية: ${_formatDate(c.createdAt)}',
-                          icon: FluentIcons.calendar,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Bottom Divider
-            Container(height: 1, color: DesignTokens.brown),
-
-            // Action Button
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.h),
-              child: Center(
-                child: FilledButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(
-                      DesignTokens.brown,
-                    ),
-                    padding: WidgetStateProperty.all(
-                      EdgeInsets.symmetric(horizontal: 48.w, vertical: 10.h),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      FluentPageRoute(
-                        builder: (_) => CaseDetailsPage(caseId: c.id),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    'عرض الملفات',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoBox(String text, {IconData? icon}) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFBF9F6),
-        border: Border.all(color: DesignTokens.brown.withValues(alpha: 0.5)),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (icon != null)
-            Icon(icon, size: 16.sp, color: DesignTokens.brown)
-          else
-            const SizedBox.shrink(),
-          Text(
-            text,
-            textAlign: TextAlign.right,
-            style: TextStyle(fontSize: 14.sp, color: DesignTokens.brown),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime d) => "${d.year}-${d.month}-${d.day}";
-}
 
 
 class _AccessRequestsTableHeader extends StatelessWidget {
@@ -753,6 +628,16 @@ class _AccessRequestsTableHeader extends StatelessWidget {
 }
 
 class _AccessRequestRow extends StatelessWidget {
+  final AccessRequestEntity request;
+  final VoidCallback onApprove;
+  final VoidCallback onReject;
+
+  const _AccessRequestRow({
+    required this.request,
+    required this.onApprove,
+    required this.onReject,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -763,7 +648,7 @@ class _AccessRequestRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              "#34627",
+              "#${request.requestId.length > 5 ? request.requestId.substring(0, 5) : request.requestId}",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
             ),
@@ -771,7 +656,7 @@ class _AccessRequestRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              "رمضان ابراهيم",
+              request.lawyerName,
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
@@ -779,52 +664,75 @@ class _AccessRequestRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              "#34627",
+              "#${request.caseNumber}",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
             ),
           ),
           Expanded(
             flex: 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Accept button
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.green),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      FluentIcons.check_mark,
-                      color: Colors.green,
-                      size: 12.sp,
+            child: request.status == 'PENDING'
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Accept button
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.green),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            FluentIcons.check_mark,
+                            color: Colors.green,
+                            size: 12.sp,
+                          ),
+                          onPressed: onApprove,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      // Reject button
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: DesignTokens.red),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            FluentIcons.cancel,
+                            color: DesignTokens.red,
+                            size: 12.sp,
+                          ),
+                          onPressed: onReject,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    request.status == 'APPROVED' ? 'تمت الموافقة' : 'مرفوض',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: request.status == 'APPROVED'
+                          ? Colors.green
+                          : DesignTokens.red,
                     ),
-                    onPressed: () {},
                   ),
-                ),
-                SizedBox(width: 8.w),
-                // Reject button
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: DesignTokens.red),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      FluentIcons.cancel,
-                      color: DesignTokens.red,
-                      size: 12.sp,
-                    ),
-                    onPressed: () {},
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
     );
+  }
+}
+
+extension ArabicNumbers on String {
+  String toArabicNumbers() {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    String result = this;
+    for (int i = 0; i < english.length; i++) {
+      result = result.replaceAll(english[i], arabic[i]);
+    }
+    return result;
   }
 }

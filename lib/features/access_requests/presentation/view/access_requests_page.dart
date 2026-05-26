@@ -1,6 +1,7 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/access_request_entity.dart';
@@ -15,6 +16,8 @@ class AccessRequestsPage extends ConsumerStatefulWidget {
 
 class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
   int _selectedTabIndex = 0; // 0: Pending, 1: Accepted, 2: Rejected
+  String _searchQuery = '';
+  DateTime? _dateFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -55,29 +58,22 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Icon(FluentIcons.search, size: 14),
                   ),
+                  onChanged: (v) {
+                    setState(() {
+                      _searchQuery = v;
+                    });
+                  },
                 ),
               ),
               const Spacer(),
-              // Date Picker (Mock)
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: DesignTokens.brown.withValues(alpha: 0.5),
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(
-                      FluentIcons.calendar,
-                      size: 14,
-                      color: DesignTokens.gray,
-                    ),
-                  ],
-                ),
+              // Custom Syncfusion Date Picker
+              _CustomDatePicker(
+                selectedDate: _dateFilter,
+                onDateChanged: (v) {
+                  setState(() {
+                    _dateFilter = v;
+                  });
+                },
               ),
             ],
           ),
@@ -145,15 +141,35 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
 
     return asyncRequests.when(
       data: (requests) {
-        if (requests.isEmpty) {
-          return const Center(child: Text('لا توجد طلبات'));
+        var filteredRequests = requests;
+        if (_searchQuery.isNotEmpty) {
+          final q = _searchQuery.toLowerCase();
+          filteredRequests = filteredRequests.where((r) =>
+              r.lawyerName.toLowerCase().contains(q) ||
+              r.caseNumber.toLowerCase().contains(q) ||
+              r.requestId.toLowerCase().contains(q)).toList();
         }
+
+        if (_dateFilter != null) {
+          final d = _dateFilter!;
+          filteredRequests = filteredRequests.where((r) {
+            if (r.requestedAt == null) return false;
+            return r.requestedAt!.year == d.year &&
+                   r.requestedAt!.month == d.month &&
+                   r.requestedAt!.day == d.day;
+          }).toList();
+        }
+
+        if (filteredRequests.isEmpty) {
+          return const Center(child: Text('لا توجد طلبات تطابق البحث'));
+        }
+
         if (_selectedTabIndex == 0) {
-          return _buildPendingRequests(requests);
+          return _buildPendingRequests(filteredRequests);
         } else if (_selectedTabIndex == 1) {
-          return _buildResolvedRequests(requests, isAccepted: true);
+          return _buildResolvedRequests(filteredRequests, isAccepted: true);
         } else {
-          return _buildResolvedRequests(requests, isAccepted: false);
+          return _buildResolvedRequests(filteredRequests, isAccepted: false);
         }
       },
       loading: () => const Center(child: ProgressRing()),
@@ -387,6 +403,113 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
           ),
         );
       },
+    );
+  }
+}
+
+class _CustomDatePicker extends StatefulWidget {
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime?> onDateChanged;
+
+  const _CustomDatePicker({
+    required this.selectedDate,
+    required this.onDateChanged,
+  });
+
+  @override
+  State<_CustomDatePicker> createState() => _CustomDatePickerState();
+}
+
+class _CustomDatePickerState extends State<_CustomDatePicker> {
+  final _flyoutController = FlyoutController();
+
+  @override
+  void dispose() {
+    _flyoutController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        FlyoutTarget(
+          controller: _flyoutController,
+          child: Button(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(Colors.white),
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              ),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  side: BorderSide(color: DesignTokens.brown.withValues(alpha: 0.5)),
+                ),
+              ),
+            ),
+            onPressed: () {
+              _flyoutController.showFlyout(
+                builder: (context) {
+                  return FlyoutContent(
+                    padding: EdgeInsets.zero,
+                    child: SizedBox(
+                      width: 320,
+                      height: 350,
+                      // We use DatePicker from Fluent UI or Syncfusion.
+                      // Since we added syncfusion_flutter_datepicker, we use SfDateRangePicker
+                      child: SfDateRangePicker(
+                        view: DateRangePickerView.month,
+                        selectionMode: DateRangePickerSelectionMode.single,
+                        initialSelectedDate: widget.selectedDate,
+                        todayHighlightColor: DesignTokens.brown,
+                        selectionColor: DesignTokens.brown,
+                        monthCellStyle: DateRangePickerMonthCellStyle(
+                          todayTextStyle: const TextStyle(color: DesignTokens.brown, fontWeight: FontWeight.bold),
+                          textStyle: TextStyle(color: DesignTokens.brown.withValues(alpha: 0.8)),
+                        ),
+                        headerStyle: const DateRangePickerHeaderStyle(
+                          textAlign: TextAlign.center,
+                          textStyle: TextStyle(
+                            color: DesignTokens.brown,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onSelectionChanged: (args) {
+                          if (args.value is DateTime) {
+                            widget.onDateChanged(args.value);
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: Row(
+              children: [
+                Text(
+                  widget.selectedDate != null
+                      ? "${widget.selectedDate!.year}-${widget.selectedDate!.month.toString().padLeft(2, '0')}-${widget.selectedDate!.day.toString().padLeft(2, '0')}"
+                      : "اختر التاريخ",
+                  style: const TextStyle(color: DesignTokens.brown, fontSize: 13),
+                ),
+                const SizedBox(width: 8),
+                const Icon(FluentIcons.calendar, size: 14, color: DesignTokens.brown),
+              ],
+            ),
+          ),
+        ),
+        if (widget.selectedDate != null) ...[
+          const SizedBox(width: 4),
+          IconButton(
+            icon: const Icon(FluentIcons.clear, size: 12),
+            onPressed: () => widget.onDateChanged(null),
+          ),
+        ],
+      ],
     );
   }
 }

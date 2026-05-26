@@ -1,10 +1,11 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/case_model.dart';
 import '../viewmodel/cases_vm.dart';
-import 'case_details_page.dart';
+import 'widgets/case_details_dialog.dart';
 import 'widgets/add_case_dialog.dart';
 
 class CasesPage extends ConsumerWidget {
@@ -28,62 +29,36 @@ class CasesPage extends ConsumerWidget {
                 width: 300,
                 child: TextBox(
                   placeholder: 'ابحث في القضايا',
-                  suffix: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(FluentIcons.search, size: 14),
+                  suffix: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: IconButton(
+                      icon: const Icon(FluentIcons.search, size: 14),
+                      onPressed: () => vm.search(),
+                    ),
                   ),
                   onChanged: vm.setQuery,
                   onSubmitted: (_) => vm.search(),
                 ),
               ),
-              const SizedBox(width: 12),
-              // Date Picker (Mock)
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: DesignTokens.brown.withValues(alpha: 0.5),
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(
-                      FluentIcons.calendar,
-                      size: 14,
-                      color: DesignTokens.brown,
-                    ),
-                  ],
-                ),
+              // Custom Syncfusion Date Picker
+              _CustomDatePicker(
+                selectedDate: st.dateFilter,
+                onDateChanged: vm.setDateFilter,
               ),
               const SizedBox(width: 12),
               // Status Dropdown
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: DesignTokens.brown.withValues(alpha: 0.5),
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: const [
-                    Text(
-                      "الحالة: الكل",
-                      style: TextStyle(color: DesignTokens.brown, fontSize: 13),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(
-                      FluentIcons.chevron_down,
-                      size: 10,
-                      color: DesignTokens.brown,
-                    ),
-                  ],
-                ),
+              ComboBox<String>(
+                value: st.statusFilter,
+                items: const [
+                  ComboBoxItem(value: 'ALL', child: Text('الحالة: الكل')),
+                  ComboBoxItem(value: 'PENDING', child: Text('قيد الانتظار')),
+                  ComboBoxItem(value: 'ASSIGNED', child: Text('تم التعيين')),
+                  ComboBoxItem(value: 'IN_PROGRESS', child: Text('قيد التنفيذ')),
+                  ComboBoxItem(value: 'COMPLETED', child: Text('مكتملة')),
+                ],
+                onChanged: (v) {
+                  if (v != null) vm.setStatusFilter(v);
+                },
               ),
               const Spacer(),
               // Add Case Button
@@ -141,10 +116,9 @@ class CasesPage extends ConsumerWidget {
                         return _CaseRow(
                           c: c,
                           onTap: () {
-                            Navigator.of(context).push(
-                              FluentPageRoute(
-                                builder: (_) => CaseDetailsPage(caseId: c.id),
-                              ),
+                            showDialog(
+                              context: context,
+                              builder: (_) => CaseDetailsDialog(c: c),
                             );
                           },
                         );
@@ -160,7 +134,7 @@ class CasesPage extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(FluentIcons.chevron_left),
+                icon: const Icon(FluentIcons.chevron_right),
                 onPressed: st.pageInfo.hasPrevious ? vm.prevPage : null,
               ),
               const SizedBox(width: 12),
@@ -170,7 +144,7 @@ class CasesPage extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               IconButton(
-                icon: const Icon(FluentIcons.chevron_right),
+                icon: const Icon(FluentIcons.chevron_left),
                 onPressed: st.pageInfo.hasNext ? vm.nextPage : null,
               ),
             ],
@@ -255,7 +229,7 @@ class _CaseRow extends StatelessWidget {
             ),
             Expanded(
               flex: 2,
-              child: Text('جنايات', textAlign: TextAlign.center),
+              child: Text(c.courtRuling.isNotEmpty ? c.courtRuling : 'غير محدد', textAlign: TextAlign.center),
             ),
             Expanded(
               flex: 2,
@@ -277,7 +251,120 @@ class _CaseRow extends StatelessWidget {
   String _formatDate(DateTime d) => "${d.day}-${d.month}-${d.year}";
 
   String _statusLabel(String s) {
-    if (s == 'ASSIGNED' || s == 'COMPLETED') return 'تم التعيين';
-    return 'لم يتم التعيين'; // Default to match mock
+    switch (s.toUpperCase()) {
+      case 'PENDING': return 'قيد الانتظار';
+      case 'ASSIGNED': return 'تم التعيين';
+      case 'IN_PROGRESS': return 'قيد التنفيذ';
+      case 'COMPLETED': return 'مكتملة';
+      case 'CLOSED': return 'مغلقة';
+      case 'REJECTED': return 'مرفوضة';
+      case 'ACCEPTED': return 'مقبولة';
+      default: return s.isNotEmpty ? s : 'غير محدد';
+    }
+  }
+}
+
+class _CustomDatePicker extends StatefulWidget {
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime?> onDateChanged;
+
+  const _CustomDatePicker({
+    required this.selectedDate,
+    required this.onDateChanged,
+  });
+
+  @override
+  State<_CustomDatePicker> createState() => _CustomDatePickerState();
+}
+
+class _CustomDatePickerState extends State<_CustomDatePicker> {
+  final _flyoutController = FlyoutController();
+
+  @override
+  void dispose() {
+    _flyoutController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        FlyoutTarget(
+          controller: _flyoutController,
+          child: Button(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(Colors.white),
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              ),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  side: BorderSide(color: DesignTokens.brown.withValues(alpha: 0.5)),
+                ),
+              ),
+            ),
+            onPressed: () {
+              _flyoutController.showFlyout(
+                builder: (context) {
+                  return FlyoutContent(
+                    padding: EdgeInsets.zero,
+                    child: SizedBox(
+                      width: 320,
+                      height: 350,
+                      child: SfDateRangePicker(
+                        view: DateRangePickerView.month,
+                        selectionMode: DateRangePickerSelectionMode.single,
+                        initialSelectedDate: widget.selectedDate,
+                        todayHighlightColor: DesignTokens.brown,
+                        selectionColor: DesignTokens.brown,
+                        monthCellStyle: DateRangePickerMonthCellStyle(
+                          todayTextStyle: const TextStyle(color: DesignTokens.brown, fontWeight: FontWeight.bold),
+                          textStyle: TextStyle(color: DesignTokens.brown.withValues(alpha: 0.8)),
+                        ),
+                        headerStyle: const DateRangePickerHeaderStyle(
+                          textAlign: TextAlign.center,
+                          textStyle: TextStyle(
+                            color: DesignTokens.brown,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onSelectionChanged: (args) {
+                          if (args.value is DateTime) {
+                            widget.onDateChanged(args.value);
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: Row(
+              children: [
+                Text(
+                  widget.selectedDate != null
+                      ? "${widget.selectedDate!.year}-${widget.selectedDate!.month.toString().padLeft(2, '0')}-${widget.selectedDate!.day.toString().padLeft(2, '0')}"
+                      : "اختر التاريخ",
+                  style: const TextStyle(color: DesignTokens.brown, fontSize: 13),
+                ),
+                const SizedBox(width: 8),
+                const Icon(FluentIcons.calendar, size: 14, color: DesignTokens.brown),
+              ],
+            ),
+          ),
+        ),
+        if (widget.selectedDate != null) ...[
+          const SizedBox(width: 4),
+          IconButton(
+            icon: const Icon(FluentIcons.clear, size: 12),
+            onPressed: () => widget.onDateChanged(null),
+          ),
+        ],
+      ],
+    );
   }
 }

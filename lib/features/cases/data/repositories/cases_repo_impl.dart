@@ -11,11 +11,24 @@ class CasesRepoImpl implements CasesRepo {
   final String Function() _getRole;
 
   @override
+  Future<void> createCase(Map<String, dynamic> data) async {
+    try {
+      await _remote.createCase(data);
+    } on DioException catch (e) {
+      final msg = (e.response?.data is Map && e.response?.data['message'] != null)
+          ? e.response?.data['message'].toString()
+          : 'تعذر إضافة القضية';
+      throw Exception(msg);
+    }
+  }
+
   @override
   Future<CasesResult> getCases({
     required int page,
     required int pageSize,
     String? query,
+    String? status,
+    String? date,
   }) async {
     try {
       final role = _getRole();
@@ -24,15 +37,22 @@ class CasesRepoImpl implements CasesRepo {
         page: page,
         pageSize: pageSize,
         query: query,
+        status: status,
+        date: date,
       );
 
       if (body is! Map) {
         return const CasesResult(items: [], pageInfo: PageInfo.empty);
       }
 
-      final dataList = (body['data'] is List)
-          ? (body['data'] as List)
-          : const [];
+      List<dynamic> dataList = [];
+      if (body['data'] is List) {
+        dataList = body['data'] as List;
+      } else if (body['data'] is Map && body['data']['content'] is List) {
+        dataList = body['data']['content'] as List;
+      } else if (body['content'] is List) {
+        dataList = body['content'] as List;
+      }
       final items = dataList
           .whereType<Map>()
           .map((e) => CaseModel.fromJson(Map<String, dynamic>.from(e)))
@@ -56,18 +76,47 @@ class CasesRepoImpl implements CasesRepo {
     }
   }
 
-  List<Map<String, dynamic>> _extractList(dynamic body) {
-    if (body is List) {
-      return body.cast<Map<String, dynamic>>();
+  @override
+  Future<void> assignUser(String caseId, String userId) async {
+    try {
+      await _remote.assignUser(caseId, userId);
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg = (data is Map && data['message'] != null)
+          ? data['message'].toString()
+          : 'تعذر تعيين المستخدم';
+      throw Exception(msg);
     }
-    if (body is Map) {
-      // أشهر أشكال:
-      // { data: [..] } أو { content: [..] } أو { cases: [..] }
-      for (final key in ['data', 'content', 'cases', 'items']) {
-        final v = body[key];
-        if (v is List) return v.cast<Map<String, dynamic>>();
-      }
+  }
+
+  @override
+  Future<dynamic> getCaseById(String caseId) async {
+    try {
+      return await _remote.getCaseById(caseId);
+    } catch (e) {
+      throw Exception('تعذر جلب بيانات القضية: $e');
     }
-    return [];
+  }
+
+  @override
+  Future<List<int>> getFileBytes(String caseId, String fileName) async {
+    try {
+      return await _remote.getFileBytes(caseId, fileName);
+    } catch (e) {
+      throw Exception('تعذر جلب بيانات الملف: $e');
+    }
+  }
+
+  @override
+  Future<void> uploadCaseFiles(
+    String caseId,
+    List<MultipartFile> files,
+    void Function(int, int) onProgress,
+  ) async {
+    try {
+      await _remote.uploadCaseFiles(caseId, files, onProgress);
+    } catch (e) {
+      throw Exception('تعذر رفع الملفات: $e');
+    }
   }
 }
