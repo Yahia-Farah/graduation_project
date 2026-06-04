@@ -66,13 +66,7 @@ class LoginVm extends Notifier<LoginState> {
   }
 
   Future<void> submitLogin() async {
-    // ignore: avoid_print
-    print('submitLogin called: email="${state.email}"');
-    print('submitLogin called: password="${state.password}"');
-
     if (!validate()) {
-      // ignore: avoid_print
-      print('validate failed');
       return;
     }
 
@@ -96,12 +90,8 @@ class LoginVm extends Notifier<LoginState> {
           );
 
       state = state.copyWith(submitting: false);
-      // ignore: avoid_print
-      print('login success -> session set');
     } catch (e) {
       state = state.copyWith(submitting: false, submitError: e.toString());
-      // ignore: avoid_print
-      print('login error: $e');
     }
   }
 }

@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../auth/presentation/viewmodel/auth_session.dart';
 import '../../cases_providers.dart';
 import '../../domain/case_model.dart';
 import '../viewmodel/case_files_vm.dart';
@@ -165,6 +166,8 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(caseFilesViewModelProvider(widget.caseModel.id));
+    final authState = ref.watch(authSessionProvider);
+    final isJudge = authState.role?.toUpperCase() == 'JUDGE';
 
     return ScaffoldPage(
       padding: EdgeInsets.zero,
@@ -175,35 +178,37 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
         child: Row(
           children: [
             // Upload button on far left
-            FilledButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.white),
-                padding: WidgetStateProperty.all(
-                  EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+            if (!isJudge)
+              FilledButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.white),
+                  padding: WidgetStateProperty.all(
+                    EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                  ),
+                ),
+                onPressed: _triggerUpload,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      FluentIcons.cloud_upload,
+                      color: DesignTokens.brown,
+                      size: 16.sp,
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      'رفع ملفات',
+                      style: TextStyle(
+                        color: DesignTokens.brown,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              onPressed: _triggerUpload,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    FluentIcons.cloud_upload,
-                    color: DesignTokens.brown,
-                    size: 16.sp,
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    'رفع ملفات',
-                    style: TextStyle(
-                      color: DesignTokens.brown,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(),
+            if (!isJudge) const Spacer(),
+            if (isJudge) const Spacer(),
             Text(
               'قضية رقم #${widget.caseModel.caseNumber} - ${widget.caseModel.courtRuling.isNotEmpty ? widget.caseModel.courtRuling : "غير محدد"}',
               style: TextStyle(
@@ -246,7 +251,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
                     : EdgeInsets.zero,
                 child: previewingFileName != null
                     ? _buildPreviewSection()
-                    : _buildUploadSection(state),
+                    : (isJudge ? _buildEmptyPreviewSection() : _buildUploadSection(state)),
               ),
             ),
             SizedBox(width: 24.w),
@@ -466,6 +471,30 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
         ),
       );
     }
+  }
+
+  Widget _buildEmptyPreviewSection() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            FluentIcons.document_search,
+            size: 64.sp,
+            color: DesignTokens.brown.withValues(alpha: 0.5),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'اختر ملفاً من القائمة الجانبية للمعاينة',
+            style: TextStyle(
+              fontSize: 18.sp,
+              color: DesignTokens.brown,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildUploadSection(CaseFilesState state) {

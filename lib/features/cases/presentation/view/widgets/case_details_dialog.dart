@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../app/theme/design_tokens.dart';
+import '../../../../ai_analysis/presentation/view/ai_analysis_result_page.dart';
+import '../../../../ai_analysis/presentation/viewmodel/ai_analysis_vm.dart';
 import '../../../domain/case_model.dart';
 import '../../viewmodel/cases_vm.dart';
 import '../../../cases_providers.dart';
 import '../../../../users/presentation/viewmodel/judges_viewmodel.dart';
+import '../../../../auth/presentation/viewmodel/auth_session.dart';
+
 import '../case_files_page.dart';class CaseDetailsDialog extends ConsumerStatefulWidget {
   final CaseModel c;
   const CaseDetailsDialog({super.key, required this.c});
@@ -55,6 +59,8 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
   @override
   Widget build(BuildContext context) {
     final hasUnassignedJudge = widget.c.judgeName == null;
+    final authState = ref.watch(authSessionProvider);
+    final isJudge = authState.role?.toUpperCase() == 'JUDGE';
 
     return Center(
       child: Container(
@@ -126,7 +132,8 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
                         SizedBox(height: 16.h),
                         _buildInfoBox('المحامي: ${widget.c.lawyerName ?? 'غير معين'}'),
                         SizedBox(height: 12.h),
-                        _buildJudgeSelection(),
+                        if (!isJudge) _buildJudgeSelection(),
+                        if (isJudge) _buildInfoBox('القاضي: ${widget.c.judgeName ?? 'غير معين'}'),
                       ],
                     ),
                   ),
@@ -170,7 +177,7 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (hasUnassignedJudge)
+                    if (hasUnassignedJudge && !isJudge)
                       Padding(
                         padding: EdgeInsets.only(right: 16.w),
                         child: FilledButton(
@@ -192,7 +199,7 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
                                 ),
                         ),
                       ),
-                    if (!hasUnassignedJudge)
+                    if (!hasUnassignedJudge || isJudge)
                       Padding(
                         padding: EdgeInsets.only(right: 16.w),
                         child: FilledButton(
@@ -215,6 +222,40 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (isJudge)
+                      Padding(
+                        padding: EdgeInsets.only(right: 16.w),
+                        child: FilledButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(const Color(0xFFE2C485)),
+                            padding: WidgetStateProperty.all(
+                              EdgeInsets.symmetric(horizontal: 48.w, vertical: 10.h),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (widget.c.status.toUpperCase() == 'COMPLETED') {
+                               Navigator.of(context).pop();
+                               ref.read(aiAnalysisVmProvider.notifier).fetchSavedResult(widget.c.id).then((_) {
+                                 if (!context.mounted) return;
+                                 Navigator.of(context).push(FluentPageRoute(
+                                   builder: (context) => const AiAnalysisResultPage(),
+                                 ));
+                               });
+                            } else {
+                               Navigator.of(context).pop();
+                               ref.read(aiAnalysisVmProvider.notifier).startAnalysis(widget.c.id, widget.c.caseNumber);
+                            }
+                          },
+                          child: Text(
+                            widget.c.status.toUpperCase() == 'COMPLETED' ? 'عرض التحليل' : 'حلل الآن',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: DesignTokens.brown,
                             ),
                           ),
                         ),

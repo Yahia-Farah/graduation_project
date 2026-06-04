@@ -64,6 +64,7 @@ class UsersRemoteDsImpl implements UsersRemoteDs {
         try {
           return UserEntity.fromJson(e as Map<String, dynamic>);
         } catch (err) {
+          // ignore: avoid_print
           print('Error parsing UserEntity: $err');
           return UserEntity(
             id: e['id']?.toString() ?? '',
@@ -122,6 +123,7 @@ class UsersRemoteDsImpl implements UsersRemoteDs {
         try {
           return UserEntity.fromJson(e as Map<String, dynamic>);
         } catch (err) {
+          // ignore: avoid_print
           print('Error parsing UserEntity in getLawyers: $err');
           return UserEntity(
             id: e['id']?.toString() ?? '',
@@ -179,6 +181,7 @@ class UsersRemoteDsImpl implements UsersRemoteDs {
         try {
           return UserEntity.fromJson(e as Map<String, dynamic>);
         } catch (err) {
+          // ignore: avoid_print
           print('Error parsing UserEntity in getJudges: $err');
           return UserEntity(
             id: e['id']?.toString() ?? '',

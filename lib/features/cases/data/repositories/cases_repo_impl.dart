@@ -58,9 +58,20 @@ class CasesRepoImpl implements CasesRepo {
           .map((e) => CaseModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
 
-      final pageInfoJson = (body['pageInfo'] is Map)
-          ? Map<String, dynamic>.from(body['pageInfo'])
-          : <String, dynamic>{};
+      Map<String, dynamic> pageInfoJson = {};
+      if (body['pageInfo'] is Map) {
+        pageInfoJson = Map<String, dynamic>.from(body['pageInfo']);
+      } else if (body['data'] is Map && body['data']['pageable'] != null) {
+        final dataMap = body['data'] as Map;
+        pageInfoJson = {
+          'currentPage': dataMap['number'] ?? 0,
+          'totalPages': dataMap['totalPages'] ?? 0,
+          'totalElements': dataMap['totalElements'] ?? 0,
+          'pageSize': dataMap['size'] ?? 0,
+          'hasNext': dataMap['last'] == false,
+          'hasPrevious': dataMap['first'] == false,
+        };
+      }
 
       final pageInfo = pageInfoJson.isEmpty
           ? PageInfo.empty

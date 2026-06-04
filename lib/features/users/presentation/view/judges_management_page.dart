@@ -182,7 +182,7 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
           if (_searchQuery.isEmpty) return true;
           final q = _searchQuery.toLowerCase();
           return u.fullName.toLowerCase().contains(q) ||
-              (u.id.toLowerCase().contains(q) ?? false);
+              u.id.toLowerCase().contains(q);
         }).toList();
         if (judges.isEmpty) {
           return const Center(child: Text('لا يوجد قضاة حاليين'));
@@ -315,7 +315,7 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: _fieldBox('الرقم التعريفي', user.id ?? 'غير محدد'),
+                      child: _fieldBox('الرقم التعريفي', user.id),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -527,7 +527,7 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
           if (_searchQuery.isEmpty) return true;
           final q = _searchQuery.toLowerCase();
           return u.fullName.toLowerCase().contains(q) ||
-              (u.id.toLowerCase().contains(q) ?? false);
+              u.id.toLowerCase().contains(q);
         }).toList();
         if (judges.isEmpty) {
           return const Center(child: Text('لا يوجد قضاة غير نشطين'));

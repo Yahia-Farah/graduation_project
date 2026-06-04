@@ -521,7 +521,7 @@ class _LawyersManagementPageState
                     Expanded(
                       child: _fieldBox(
                         'الرقم التعريفي',
-                        user.id ?? 'غير محدد',
+                        user.id,
                       ),
                     ),
                     const SizedBox(width: 12),

@@ -25,8 +25,10 @@ class _AuthShellState extends ConsumerState<AuthShell> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authSessionProvider, (prev, next) {
-      final wasAuthed = prev?.isAuthed ?? false;
+    ref.listen(authSessionProvider.select((s) => s.isAuthed), (prev, isAuthed) {
+      if (isAuthed) {
+        // handled by root decider
+      }
     });
     return Directionality(
       textDirection: TextDirection.rtl,

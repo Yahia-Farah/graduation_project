@@ -114,7 +114,9 @@ lib/
     ├── cases/                         # Case management feature
     ├── dashboard/                     # Dashboard feature (admin + judge variants)
     ├── users/                         # User management feature (admin only)
-    └── access_requests/               # Access requests feature (admin only)
+    ├── access_requests/               # Access requests feature (admin only)
+    ├── notifications/                 # Notifications feature (badge, flyout, API)
+    └── ai_analysis/                   # AI case analysis feature (judge only)
 ```
 
 ---
@@ -227,6 +229,49 @@ class AuthSessionState {
 
 > **Note:** This feature has no data or domain layer yet — it needs a backend API integration.
 
+### 6. Notifications (`lib/features/notifications/`)
+
+**Purpose:** Manage notifications, show unread count in Top Bar, and allow deletion.
+
+| Layer | Files | Description |
+|---|---|---|
+| **Providers** | `notifications_providers.dart` | `notificationsRemoteDsProvider`, `notificationsRepoProvider` |
+| **Domain** | `domain/notification_model.dart` | `NotificationModel` with id, title, message, createdAt, read |
+| **Data** | `data/sources/notifications_remote_ds.dart` | HTTP calls: fetch list, unread count, delete |
+| **Data** | `data/repositories/notifications_repo.dart` | Abstract `NotificationsRepo` + `NotificationsResult` |
+| **Data** | `data/repositories/notifications_repo_impl.dart` | Parses API responses for notifications |
+| **Presentation** | `presentation/viewmodel/notifications_vm.dart` | `NotificationsVm` — state for list, loading, unreadCount, and deletion |
+| **Presentation** | `presentation/widgets/notifications_flyout.dart` | Flyout widget attached to the Top Bar bell icon |
+
+### 7. AI Analysis (`lib/features/ai_analysis/`)
+
+**Purpose:** Judge-only AI-powered case analysis. Sends cases to `/ai/invoke/{caseId}` for background processing (6-7 min). Results include case summary, suggested verdict, defendants, charges, incidents, evidence, witness statements, confessions, lab reports, criminal proceedings, defense documents, and procedural audit.
+
+| Layer | Files | Description |
+|---|---|---|
+| **Providers** | `ai_analysis_providers.dart` | `aiAnalysisRemoteDsProvider`, `aiAnalysisRepoProvider` |
+| **Domain** | `domain/ai_analysis_model.dart` | Full response models: `AiAnalysisResult`, `CaseSummary`, `SuggestedVerdict`, `Defendant`, `Charge`, `Incident`, `Evidence`, `WitnessStatement`, `Confession`, `LabReport`, `CriminalProceeding`, `DefenseDocument`, `ProceduralAudit` |
+| **Data** | `data/sources/ai_analysis_remote_ds.dart` | POST `/ai/invoke/{caseId}` with 10-min timeout |
+| **Data** | `data/repositories/ai_analysis_repo.dart` | Abstract `AiAnalysisRepo` |
+| **Data** | `data/repositories/ai_analysis_repo_impl.dart` | Parses response, handles timeout errors |
+| **Presentation** | `presentation/viewmodel/ai_analysis_vm.dart` | `AiAnalysisVm` — background task queue manager (fire-and-forget pattern) |
+| **Presentation** | `presentation/view/ai_analysis_result_page.dart` | Full results page with expandable sections for all analysis data |
+
+**Background Processing Flow:**
+```
+User selects cases → clicks "حلل الآن" → AiAnalysisVm.startAnalysis() returns immediately
+→ InfoBar shows "Analyzing..." → User navigates freely → On completion: success notification
+```
+
+### Judge-Specific Pages
+
+| Page | File | Description |
+|---|---|---|
+| Judge Dashboard | `dashboard/presentation/judge_dashboard_page.dart` | Real API stat cards + cases table with checkboxes + AI analysis trigger |
+| Judge All Cases | `cases/presentation/view/judge_cases_page.dart` | Tab-filtered cases: الجميع/الجديدة/قيد التحليل/مكتملة |
+| Judge Archive | `cases/presentation/view/judge_archive_page.dart` | Completed cases only |
+| AI Results | `ai_analysis/presentation/view/ai_analysis_result_page.dart` | Full analysis results view |
+
 ---
 
 ## State Management & Dependency Injection
@@ -317,6 +362,19 @@ For paginated lists:
 | PUT | `/v1/admin/users/{userId}/deactivate` | Deactivate user |
 | DELETE | `/v1/admin/users/{userId}` | Delete user |
 
+### AI Analysis (judge only)
+| Method | Path | Description |
+|---|---|---|
+| POST | `/ai/invoke/{caseId}` | Invoke AI analysis for a case (6-7 min response time) |
+
+### Notifications
+| Method | Path | Description |
+|---|---|---|
+| GET | `/v1/notifications` | List notifications (paginated) |
+| GET | `/v1/notifications/{id}` | Get notification details |
+| GET | `/v1/notifications/unread-count` | Get unread notifications count |
+| DELETE | `/v1/notifications/{id}` | Delete notification |
+
 ---
 
 ## Domain Models
@@ -398,7 +456,8 @@ Defined in `lib/app/shell/menu_items.dart`:
 | لوحة التحكم الرئيسية | `dashboard` | ✅ | ✅ | ✅ |
 | إدارة القضايا | `cases` | ✅ | ✅ | ❌ |
 | إدارة طلبات الوصول | `access_requests` | ✅ | ❌ | ❌ |
-| الجلسات | `hearings` | ❌ | ❌ | ✅ |
+| جميع القضايا | `judge_cases` | ❌ | ❌ | ✅ |
+| الأرشيف | `judge_archive` | ❌ | ❌ | ✅ |
 | إدارة المستخدمين | `users` | ✅ | ❌ | ❌ |
 | الحساب الشخصي | `profile` | ✅ | ✅ | ✅ |
 | الإعدادات | `settings` | ✅ | ✅ | ✅ |
@@ -505,9 +564,9 @@ class Env {
 
 ## Known Limitations & TODOs
 
-- **Dashboard data source** uses mock data — needs real API integration
+- **~~Dashboard data source~~ uses mock data** — Judge dashboard now uses real API; Admin dashboard still uses mock data
 - **Access Requests** feature has no data/domain layer — presentation only
-- **Hearings** page is commented out in `HomeShell` — not yet implemented
+- ~~**Hearings** page is commented out~~ — replaced by Judge Cases + Archive pages
 - **Profile** and **Settings** pages are placeholder text only
 - **No local persistence** — auth session is in-memory only (lost on app restart)
 - **No refresh token logic** — tokens are stored but refresh flow is not implemented

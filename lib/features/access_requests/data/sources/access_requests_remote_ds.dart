@@ -33,6 +33,7 @@ class AccessRequestsRemoteDsImpl implements AccessRequestsRemoteDs {
         try {
           return AccessRequestEntity.fromJson(e as Map<String, dynamic>);
         } catch (err) {
+          // ignore: avoid_print
           print('Error parsing AccessRequestEntity: $err');
           return AccessRequestEntity(
             requestId: e['requestId']?.toString() ?? '',

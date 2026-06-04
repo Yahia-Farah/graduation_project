@@ -12,7 +12,7 @@ class RootDecider extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(authSessionProvider);
 
-    print('ROOT DECIDER: isAuthed = ${session.isAuthed}');
+    debugPrint('Auth Initialized. isLoggedIn: ${session.isAuthed}, role: ${session.role}');
 
     if (session.isAuthed) {
       return const HomeShell();

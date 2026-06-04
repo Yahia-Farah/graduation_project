@@ -5,11 +5,14 @@ import '../../features/access_requests/presentation/view/access_requests_page.da
 import '../../features/auth/domain/user_role.dart';
 import '../../features/auth/presentation/viewmodel/auth_session.dart';
 import '../../features/cases/presentation/view/cases_page.dart';
+import '../../features/cases/presentation/view/judge_cases_page.dart';
+import '../../features/cases/presentation/view/judge_archive_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/dashboard/presentation/judge_dashboard_page.dart';
 import '../../features/users/presentation/view/users_management_page.dart';
 import '../../features/users/presentation/view/lawyers_management_page.dart';
 import '../../features/users/presentation/view/judges_management_page.dart';
+import '../../features/ai_analysis/presentation/view/ai_analysis_result_page.dart';
 import '../home_nav_provider.dart';
 import '../theme/design_tokens.dart';
 import 'menu_items.dart';
@@ -123,6 +126,15 @@ class HomeShell extends ConsumerWidget {
 
       // case 'hearings':
       //   return const HearingsPage();
+
+      case 'judge_cases':
+        return const JudgeCasesPage();
+
+      case 'judge_archive':
+        return const JudgeArchivePage();
+
+      case 'ai_result':
+        return const AiAnalysisResultPage();
 
       case 'users':
         return const UsersManagementPage();

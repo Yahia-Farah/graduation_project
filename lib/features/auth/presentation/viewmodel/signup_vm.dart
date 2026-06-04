@@ -169,7 +169,7 @@ class SignupVm extends Notifier<SignupState> {
 
     try {
       final repo = ref.read(authRepoProvider);
-      final emailFromApi = await repo.signup(
+      await repo.signup(
         firstName: state.firstName.trim(),
         lastName: state.lastName.trim(),
         email: state.email.trim(),

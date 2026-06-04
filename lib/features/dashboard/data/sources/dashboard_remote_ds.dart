@@ -28,6 +28,7 @@ class DashboardRemoteDs {
         accessRequests = (data['data'] as List).length;
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching access requests for dashboard: $e');
     }
 
@@ -56,6 +57,7 @@ class DashboardRemoteDs {
       }
       lawyerRequests = rawList.where((e) => e['isApproved'] == false).length;
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching lawyer requests for dashboard: $e');
     }
 
@@ -82,6 +84,7 @@ class DashboardRemoteDs {
         return lawyerName == null || lawyerName.toString().trim().isEmpty;
       }).length;
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching unassigned cases for dashboard: $e');
     }
 

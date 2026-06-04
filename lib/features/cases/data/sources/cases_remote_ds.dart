@@ -12,7 +12,10 @@ class CasesRemoteDs {
     String? status,
     String? date,
   }) async {
-    final path = _pathForRole(role);
+    String path = _pathForRole(role);
+    if (role.toUpperCase() == 'JUDGE' && status != null && status != 'ALL') {
+      path = '/v1/judges/status/$status';
+    }
 
     final res = await _dio.get(
       path,
@@ -20,7 +23,7 @@ class CasesRemoteDs {
         'page': page,
         'size': pageSize,
         if (query != null && query.isNotEmpty) 'q': query,
-        if (status != null && status != 'ALL') 'status': status,
+        if (role.toUpperCase() != 'JUDGE' && status != null && status != 'ALL') 'status': status,
         if (date != null && date.isNotEmpty) 'date': date,
       },
     );

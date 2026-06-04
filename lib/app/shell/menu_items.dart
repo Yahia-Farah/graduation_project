@@ -47,9 +47,16 @@ const appMenuItems = [
   ),
 
   AppMenuItem(
-    keyName: 'hearings',
-    title: 'الجلسات',
-    icon: FluentIcons.calendar,
+    keyName: 'judge_cases',
+    title: 'جميع القضايا',
+    icon: FluentIcons.branch_search,
+    allowedRoles: [UserRole.judge],
+  ),
+
+  AppMenuItem(
+    keyName: 'judge_archive',
+    title: 'الأرشيف',
+    icon: FluentIcons.archive,
     allowedRoles: [UserRole.judge],
   ),
 
