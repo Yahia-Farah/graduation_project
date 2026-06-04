@@ -15,8 +15,7 @@ class JudgesManagementPage extends ConsumerStatefulWidget {
       _JudgesManagementPageState();
 }
 
-class _JudgesManagementPageState
-    extends ConsumerState<JudgesManagementPage> {
+class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
   int _selectedTabIndex = 0; // 0: المستخدمين الحاليين, 1: اخرى
   String _searchQuery = '';
 
@@ -43,7 +42,6 @@ class _JudgesManagementPageState
 
           // ─── Search Bar and Add Button ────────────────────────────────────────
           Row(
-
             children: [
               FilledButton(
                 style: ButtonStyle(
@@ -183,7 +181,8 @@ class _JudgesManagementPageState
           if (u.isActive == false) return false;
           if (_searchQuery.isEmpty) return true;
           final q = _searchQuery.toLowerCase();
-          return u.fullName.toLowerCase().contains(q) || (u.id?.toLowerCase().contains(q) ?? false);
+          return u.fullName.toLowerCase().contains(q) ||
+              (u.id.toLowerCase().contains(q) ?? false);
         }).toList();
         if (judges.isEmpty) {
           return const Center(child: Text('لا يوجد قضاة حاليين'));
@@ -307,13 +306,9 @@ class _JudgesManagementPageState
                 ),
                 Row(
                   children: [
-                    Expanded(
-                      child: _fieldBox('الأسم', user.fullName),
-                    ),
+                    Expanded(child: _fieldBox('الأسم', user.fullName)),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: _fieldBox('البريد الالكتروني', user.email),
-                    ),
+                    Expanded(child: _fieldBox('البريد الالكتروني', user.email)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -324,19 +319,23 @@ class _JudgesManagementPageState
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _fieldBox('الحالة', user.isActive ? 'حساب نشط' : 'حساب غير نشط'),
+                      child: _fieldBox(
+                        'الحالة',
+                        user.isActive ? 'حساب نشط' : 'حساب غير نشط',
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(
-                      child: _fieldBox('السن', '${user.age}'),
-                    ),
+                    Expanded(child: _fieldBox('السن', '${user.age}')),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _fieldBox('عدد القضايا المعينة', '${user.assignedCasesCount}'),
+                      child: _fieldBox(
+                        'عدد القضايا المعينة',
+                        '${user.assignedCasesCount}',
+                      ),
                     ),
                   ],
                 ),
@@ -367,7 +366,10 @@ class _JudgesManagementPageState
                         },
                         child: Text(
                           user.isActive ? 'الغاء تفعيل الحساب' : 'تفعيل الحساب',
-                          style: const TextStyle(fontSize: 14, color: Colors.white),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -396,10 +398,17 @@ class _JudgesManagementPageState
                           children: [
                             Text(
                               'حذف الحساب',
-                              style: TextStyle(fontSize: 14, color: Colors.white),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
                             ),
                             SizedBox(width: 8),
-                            Icon(FluentIcons.delete, size: 16, color: Colors.white),
+                            Icon(
+                              FluentIcons.delete,
+                              size: 16,
+                              color: Colors.white,
+                            ),
                           ],
                         ),
                       ),
@@ -421,9 +430,7 @@ class _JudgesManagementPageState
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFE2C485),
-        ),
+        border: Border.all(color: const Color(0xFFE2C485)),
       ),
       child: Text.rich(
         TextSpan(
@@ -454,8 +461,8 @@ class _JudgesManagementPageState
               content: Text('هل أنت متأكد من حذف القاضي ${user.fullName}؟'),
               actions: [
                 Button(
-                  child: const Text('إلغاء'),
                   onPressed: isDeleting ? null : () => Navigator.pop(ctx),
+                  child: const Text('إلغاء'),
                 ),
                 FilledButton(
                   style: ButtonStyle(
@@ -477,7 +484,12 @@ class _JudgesManagementPageState
                                 ctx,
                                 builder: (context, close) => InfoBar(
                                   title: const Text('خطأ'),
-                                  content: Text(e.toString().replaceFirst('Exception: ', '')),
+                                  content: Text(
+                                    e.toString().replaceFirst(
+                                      'Exception: ',
+                                      '',
+                                    ),
+                                  ),
                                   severity: InfoBarSeverity.error,
                                   action: IconButton(
                                     icon: const Icon(FluentIcons.clear),
@@ -514,7 +526,8 @@ class _JudgesManagementPageState
           if (u.isActive == true) return false;
           if (_searchQuery.isEmpty) return true;
           final q = _searchQuery.toLowerCase();
-          return u.fullName.toLowerCase().contains(q) || (u.id?.toLowerCase().contains(q) ?? false);
+          return u.fullName.toLowerCase().contains(q) ||
+              (u.id.toLowerCase().contains(q) ?? false);
         }).toList();
         if (judges.isEmpty) {
           return const Center(child: Text('لا يوجد قضاة غير نشطين'));

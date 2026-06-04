@@ -1,7 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../auth/domain/user_role.dart';
 import '../../domain/user_entity.dart';
 import '../viewmodel/judges_viewmodel.dart';
 
