@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
 import '../../cases_providers.dart';
+import '../../domain/case_details_model.dart';
 
 class CaseFilesState {
-  final List<String> files;
+  final List<CaseFile> files;
   final Map<String, double> uploadProgress; // fileName -> progress (0.0 to 1.0)
   final bool isLoading;
   final String? error;
@@ -18,7 +19,7 @@ class CaseFilesState {
   });
 
   CaseFilesState copyWith({
-    List<String>? files,
+    List<CaseFile>? files,
     Map<String, double>? uploadProgress,
     bool? isLoading,
     String? error,
@@ -47,15 +48,15 @@ class CaseFilesViewModel extends StateNotifier<CaseFilesState> {
       final repo = ref.read(casesRepoProvider);
       final caseData = await repo.getCaseById(caseId);
       
-      List<String> caseFiles = [];
+      List<CaseFile> caseFiles = [];
       if (caseData != null && caseData['data'] != null) {
         final rawFiles = caseData['data']['caseFiles'];
         if (rawFiles is List) {
-          // It could be a list of strings or objects, we'll try to get string or filename
           caseFiles = rawFiles.map((e) {
-            if (e is String) return e;
-            if (e is Map && e['fileName'] != null) return e['fileName'].toString();
-            return e.toString();
+            if (e is Map<String, dynamic>) {
+              return CaseFile.fromJson(e);
+            }
+            return CaseFile(id: '', fileName: e.toString(), fileUrl: '', fileType: '');
           }).toList();
         }
       }
@@ -123,6 +124,19 @@ class CaseFilesViewModel extends StateNotifier<CaseFilesState> {
           finalProgress.remove(file.name);
         }
         state = state.copyWith(uploadProgress: finalProgress);
+      }
+    }
+  }
+
+  Future<void> deleteFile(String fileId) async {
+    final repo = ref.read(casesRepoProvider);
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await repo.deleteCaseFile(fileId);
+      await _loadFiles();
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(error: 'خطأ أثناء حذف الملف: $e', isLoading: false);
       }
     }
   }

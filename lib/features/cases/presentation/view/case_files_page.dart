@@ -13,6 +13,7 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../auth/presentation/viewmodel/auth_session.dart';
 import '../../cases_providers.dart';
 import '../../domain/case_model.dart';
+import '../../domain/case_details_model.dart';
 import '../viewmodel/case_files_vm.dart';
 
 class CaseFilesPage extends ConsumerStatefulWidget {
@@ -166,6 +167,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(caseFilesViewModelProvider(widget.caseModel.id));
+    final vm = ref.read(caseFilesViewModelProvider(widget.caseModel.id).notifier);
     final authState = ref.watch(authSessionProvider);
     final isJudge = authState.role?.toUpperCase() == 'JUDGE';
 
@@ -308,7 +310,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
                               padding: EdgeInsets.all(16.w),
                               itemCount: state.files.length,
                               itemBuilder: (context, index) {
-                                return _buildFileItem(state.files[index]);
+                                return _buildFileItem(state.files[index], isJudge, vm);
                               },
                             ),
                     ),
@@ -628,13 +630,13 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
     );
   }
 
-  Widget _buildFileItem(String fileName) {
-    final isSelected = fileName == previewingFileName;
+  Widget _buildFileItem(CaseFile file, bool isJudge, CaseFilesViewModel vm) {
+    final isSelected = file.fileName == previewingFileName;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          _showPreview(fileName);
+          _showPreview(file.fileName);
         },
         child: Container(
           margin: EdgeInsets.only(bottom: 12.h),
@@ -649,6 +651,14 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              if (!isJudge)
+                IconButton(
+                  icon: Icon(FluentIcons.delete, color: DesignTokens.red, size: 14.sp),
+                  onPressed: () {
+                    vm.deleteFile(file.id);
+                    if (isSelected) _closePreview();
+                  },
+                ),
               if (isSelected)
                 Icon(
                   FluentIcons.red_eye,
@@ -660,7 +670,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  fileName,
+                  file.fileName,
                   style: TextStyle(
                     color: DesignTokens.brown,
                     fontSize: 14.sp,

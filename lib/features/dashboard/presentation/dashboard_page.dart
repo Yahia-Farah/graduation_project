@@ -15,6 +15,7 @@ import '../../users/presentation/viewmodel/judges_viewmodel.dart';
 import '../../users/presentation/viewmodel/lawyers_viewmodel.dart';
 import '../../access_requests/presentation/viewmodel/access_requests_viewmodel.dart';
 import '../../access_requests/domain/access_request_entity.dart';
+import '../../users/presentation/viewmodel/users_viewmodel.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -35,6 +36,12 @@ class DashboardPage extends ConsumerWidget {
     if (index != -1) {
       ref.read(homeNavIndexProvider.notifier).state = index;
       switch (keyName) {
+        case 'dashboard':
+          ref.invalidate(dashboardVmProvider);
+          break;
+        case 'users':
+          ref.invalidate(usersViewModelProvider);
+          break;
         case 'users_judges':
           ref.invalidate(judgesViewModelProvider);
           break;

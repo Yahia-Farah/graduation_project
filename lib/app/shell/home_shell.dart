@@ -9,6 +9,7 @@ import '../../features/cases/presentation/view/judge_cases_page.dart';
 import '../../features/cases/presentation/view/judge_archive_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/dashboard/presentation/judge_dashboard_page.dart';
+import '../../features/dashboard/presentation/lawyer_dashboard_page.dart';
 import '../../features/users/presentation/view/users_management_page.dart';
 import '../../features/users/presentation/view/lawyers_management_page.dart';
 import '../../features/users/presentation/view/judges_management_page.dart';
@@ -22,7 +23,10 @@ import 'top_bar.dart';
 import '../../features/auth/presentation/viewmodel/user_role_provider.dart';
 import '../../features/users/presentation/viewmodel/judges_viewmodel.dart';
 import '../../features/users/presentation/viewmodel/lawyers_viewmodel.dart';
+import '../../features/users/presentation/viewmodel/users_viewmodel.dart';
 import '../../features/cases/presentation/viewmodel/cases_vm.dart';
+import '../../features/access_requests/presentation/viewmodel/access_requests_viewmodel.dart';
+import '../../features/dashboard/presentation/viewmodel/dashboard_vm.dart';
 
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
@@ -79,6 +83,12 @@ class HomeShell extends ConsumerWidget {
                 // Refresh data when navigating to a tab
                 final targetItem = flatItems[i];
                 switch (targetItem.keyName) {
+                  case 'dashboard':
+                    ref.invalidate(dashboardVmProvider);
+                    break;
+                  case 'users':
+                    ref.invalidate(usersViewModelProvider);
+                    break;
                   case 'users_judges':
                     ref.invalidate(judgesViewModelProvider);
                     break;
@@ -87,6 +97,9 @@ class HomeShell extends ConsumerWidget {
                     break;
                   case 'cases':
                     ref.invalidate(casesVmProvider);
+                    break;
+                  case 'access_requests':
+                    ref.invalidate(accessRequestsViewModelProvider);
                     break;
                 }
               },
@@ -114,9 +127,9 @@ class HomeShell extends ConsumerWidget {
   Widget buildPage(String key, UserRole role) {
     switch (key) {
       case 'dashboard':
-        return role == UserRole.judge
-            ? const JudgeDashboardPage()
-            : const DashboardPage();
+        if (role == UserRole.judge) return const JudgeDashboardPage();
+        if (role == UserRole.lawyer) return const LawyerDashboardPage();
+        return const DashboardPage();
 
       case 'cases':
         return const CasesPage();

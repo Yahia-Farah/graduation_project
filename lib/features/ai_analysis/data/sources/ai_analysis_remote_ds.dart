@@ -9,10 +9,6 @@ class AiAnalysisRemoteDs {
   Future<dynamic> invokeAnalysis(String caseId) async {
     final res = await _dio.post(
       '/ai/invoke/$caseId',
-      options: Options(
-        receiveTimeout: const Duration(minutes: 10),
-        sendTimeout: const Duration(minutes: 1),
-      ),
     );
     return res.data;
   }

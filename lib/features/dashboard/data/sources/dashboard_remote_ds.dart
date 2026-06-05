@@ -13,7 +13,7 @@ class DashboardRemoteDs {
     try {
       final res = await _dio.get(
         '/v1/admin/users/lawyer-access/status',
-        queryParameters: {'status': 'PENDING'},
+        queryParameters: {'status': 'PENDING', 'size': 1000},
       );
       final data = res.data;
       if (data is Map && data['data'] is Map) {

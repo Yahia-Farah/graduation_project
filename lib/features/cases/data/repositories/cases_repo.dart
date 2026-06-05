@@ -21,6 +21,8 @@ abstract class CasesRepo {
   Future<void> createCase(Map<String, dynamic> data);
   Future<void> assignUser(String caseId, String userId);
   Future<dynamic> getCaseById(String caseId);
+  Future<void> requestAccess(String caseNumber);
+  Future<void> deleteCaseFile(String fileId);
   Future<List<int>> getFileBytes(String caseId, String fileName);
   Future<void> uploadCaseFiles(
     String caseId,

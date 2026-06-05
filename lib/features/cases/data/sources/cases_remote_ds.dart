@@ -44,24 +44,48 @@ class CasesRemoteDs {
     return res.data;
   }
 
-  Future<List<int>> getFileBytes(String caseId, String fileName) async {
+  Future<List<int>> getFileBytes(String role, String caseId, String fileName) async {
+    final basePath = role.toUpperCase() == 'LAWYER' 
+        ? '/v1/lawyer/cases/$caseId/files' 
+        : '/v1/admin/cases/$caseId/files';
+        
     final res = await _dio.get(
-      '/v1/admin/cases/$caseId/files/$fileName',
+      '$basePath/$fileName',
       options: Options(responseType: ResponseType.bytes),
     );
     return res.data;
   }
 
   Future<void> uploadCaseFiles(
+    String role,
     String caseId,
     List<MultipartFile> files,
     void Function(int, int) onProgress,
   ) async {
+    final path = role.toUpperCase() == 'LAWYER'
+        ? '/v1/lawyer/cases/$caseId/files'
+        : '/v1/admin/cases/$caseId/files';
+
     final formData = FormData.fromMap({'files': files});
     await _dio.post(
-      '/v1/admin/cases/$caseId/files',
+      path,
       data: formData,
       onSendProgress: onProgress,
+    );
+  }
+
+  Future<void> deleteCaseFile(String role, String fileId) async {
+    final path = role.toUpperCase() == 'LAWYER'
+        ? '/v1/lawyer/case-file/$fileId'
+        : '/v1/admin/case-file/$fileId'; // Assuming admin path structure, adjust if needed
+        
+    await _dio.delete(path);
+  }
+
+  Future<void> requestAccess(String caseNumber) async {
+    await _dio.post(
+      '/v1/lawyer/cases/request-access',
+      data: {'caseNumber': caseNumber},
     );
   }
 

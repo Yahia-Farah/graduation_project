@@ -16,6 +16,7 @@ class AccessRequestsRemoteDsImpl implements AccessRequestsRemoteDs {
   Future<List<AccessRequestEntity>> getRequestsByStatus(String status) async {
     final res = await dio.get('/v1/admin/users/lawyer-access/status', queryParameters: {
       'status': status,
+      'size': 1000,
     });
     
     final responseData = res.data;

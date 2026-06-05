@@ -110,9 +110,33 @@ class CasesRepoImpl implements CasesRepo {
   }
 
   @override
+  Future<void> requestAccess(String caseNumber) async {
+    try {
+      await _remote.requestAccess(caseNumber);
+    } on DioException catch (e) {
+      final msg = (e.response?.data is Map && e.response?.data['message'] != null)
+          ? e.response?.data['message'].toString()
+          : 'تعذر ارسال الطلب';
+      throw Exception(msg);
+    }
+  }
+
+  @override
+  Future<void> deleteCaseFile(String fileId) async {
+    try {
+      await _remote.deleteCaseFile(_getRole(), fileId);
+    } on DioException catch (e) {
+      final msg = (e.response?.data is Map && e.response?.data['message'] != null)
+          ? e.response?.data['message'].toString()
+          : 'تعذر حذف الملف';
+      throw Exception(msg);
+    }
+  }
+
+  @override
   Future<List<int>> getFileBytes(String caseId, String fileName) async {
     try {
-      return await _remote.getFileBytes(caseId, fileName);
+      return await _remote.getFileBytes(_getRole(), caseId, fileName);
     } catch (e) {
       throw Exception('تعذر جلب بيانات الملف: $e');
     }
@@ -125,7 +149,7 @@ class CasesRepoImpl implements CasesRepo {
     void Function(int, int) onProgress,
   ) async {
     try {
-      await _remote.uploadCaseFiles(caseId, files, onProgress);
+      await _remote.uploadCaseFiles(_getRole(), caseId, files, onProgress);
     } catch (e) {
       throw Exception('تعذر رفع الملفات: $e');
     }
