@@ -7,6 +7,7 @@ import '../../../../ai_analysis/presentation/view/ai_analysis_result_page.dart';
 import '../../../../ai_analysis/presentation/viewmodel/ai_analysis_vm.dart';
 import '../../../domain/case_model.dart';
 import '../../viewmodel/cases_vm.dart';
+import '../../viewmodel/judge_cases_vm.dart';
 import '../../../cases_providers.dart';
 import '../../../../users/presentation/viewmodel/judges_viewmodel.dart';
 import '../../../../auth/presentation/viewmodel/auth_session.dart';
@@ -22,6 +23,7 @@ import '../case_files_page.dart';class CaseDetailsDialog extends ConsumerStatefu
 class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
   String? _selectedJudgeId;
   bool _isSaving = false;
+  bool _isFetchingAnalysis = false;
 
   String _formatDate(DateTime d) => "${d.day}-${d.month}-${d.year}";
 
@@ -35,6 +37,7 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
         await repo.assignUser(widget.c.id, _selectedJudgeId!);
       }
       ref.invalidate(casesVmProvider);
+      ref.invalidate(judgeCasesVmProvider);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
@@ -236,28 +239,44 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
                               EdgeInsets.symmetric(horizontal: 48.w, vertical: 10.h),
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: _isFetchingAnalysis ? null : () async {
                             if (widget.c.status.toUpperCase() == 'COMPLETED') {
-                               Navigator.of(context).pop();
-                               ref.read(aiAnalysisVmProvider.notifier).fetchSavedResult(widget.c.id).then((_) {
+                               setState(() => _isFetchingAnalysis = true);
+                               try {
+                                 await ref.read(aiAnalysisVmProvider.notifier).fetchSavedResult(widget.c.id);
                                  if (!context.mounted) return;
+                                 Navigator.of(context).pop();
                                  Navigator.of(context).push(FluentPageRoute(
                                    builder: (context) => const AiAnalysisResultPage(),
                                  ));
-                               });
+                               } catch (e) {
+                                 if (!context.mounted) return;
+                                 setState(() => _isFetchingAnalysis = false);
+                                 displayInfoBar(
+                                   context,
+                                   builder: (context, close) => InfoBar(
+                                     title: const Text('خطأ'),
+                                     content: Text('تعذر تحميل نتيجة التحليل: ${e.toString().replaceFirst('Exception: ', '')}'),
+                                     severity: InfoBarSeverity.error,
+                                     onClose: close,
+                                   ),
+                                 );
+                               }
                             } else {
                                Navigator.of(context).pop();
                                ref.read(aiAnalysisVmProvider.notifier).startAnalysis(widget.c.id, widget.c.caseNumber);
                             }
                           },
-                          child: Text(
-                            widget.c.status.toUpperCase() == 'COMPLETED' ? 'عرض التحليل' : 'حلل الآن',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                              color: DesignTokens.brown,
-                            ),
-                          ),
+                          child: _isFetchingAnalysis 
+                              ? const SizedBox(width: 16, height: 16, child: ProgressRing(strokeWidth: 2))
+                              : Text(
+                                  widget.c.status.toUpperCase() == 'COMPLETED' ? 'عرض التحليل' : 'حلل الآن',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: DesignTokens.brown,
+                                  ),
+                                ),
                         ),
                       ),
                   ],

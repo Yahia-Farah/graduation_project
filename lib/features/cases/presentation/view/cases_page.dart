@@ -5,8 +5,8 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/case_model.dart';
 import '../viewmodel/cases_vm.dart';
-import 'widgets/case_details_dialog.dart';
 import 'widgets/add_case_dialog.dart';
+import 'widgets/case_details_dialog.dart';
 
 class CasesPage extends ConsumerWidget {
   const CasesPage({super.key});
@@ -26,10 +26,18 @@ class CasesPage extends ConsumerWidget {
             children: [
               // Search Box
               SizedBox(
-                width: 300,
+                width: 600,
                 child: TextBox(
+                  decoration: WidgetStateProperty.all(BoxDecoration(
+                    border:BoxBorder.all(color: DesignTokens.brown)
+                  )),
+                  suffix: _CustomDatePicker(
+                    selectedDate: st.dateFilter,
+                    onDateChanged: vm.setDateFilter,
+                  ),
+
                   placeholder: 'ابحث في القضايا',
-                  suffix: Padding(
+                  prefix: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: IconButton(
                       icon: const Icon(FluentIcons.search, size: 14),
@@ -40,27 +48,27 @@ class CasesPage extends ConsumerWidget {
                   onSubmitted: (_) => vm.search(),
                 ),
               ),
-              // Custom Syncfusion Date Picker
-              _CustomDatePicker(
-                selectedDate: st.dateFilter,
-                onDateChanged: vm.setDateFilter,
-              ),
-              const SizedBox(width: 12),
+              const Spacer(),
+
               // Status Dropdown
               ComboBox<String>(
+
                 value: st.statusFilter,
                 items: const [
                   ComboBoxItem(value: 'ALL', child: Text('الحالة: الكل')),
                   ComboBoxItem(value: 'PENDING', child: Text('قيد الانتظار')),
                   ComboBoxItem(value: 'ASSIGNED', child: Text('تم التعيين')),
-                  ComboBoxItem(value: 'IN_PROGRESS', child: Text('قيد التنفيذ')),
+                  ComboBoxItem(
+                    value: 'IN_PROGRESS',
+                    child: Text('قيد التنفيذ'),
+                  ),
                   ComboBoxItem(value: 'COMPLETED', child: Text('مكتملة')),
                 ],
                 onChanged: (v) {
                   if (v != null) vm.setStatusFilter(v);
                 },
               ),
-              const Spacer(),
+              const SizedBox(width: 12),
               // Add Case Button
               FilledButton(
                 style: ButtonStyle(
@@ -229,7 +237,10 @@ class _CaseRow extends StatelessWidget {
             ),
             Expanded(
               flex: 2,
-              child: Text(c.courtRuling.isNotEmpty ? c.courtRuling : 'غير محدد', textAlign: TextAlign.center),
+              child: Text(
+                c.courtRuling.isNotEmpty ? c.courtRuling : 'غير محدد',
+                textAlign: TextAlign.center,
+              ),
             ),
             Expanded(
               flex: 2,
@@ -252,14 +263,22 @@ class _CaseRow extends StatelessWidget {
 
   String _statusLabel(String s) {
     switch (s.toUpperCase()) {
-      case 'PENDING': return 'قيد الانتظار';
-      case 'ASSIGNED': return 'تم التعيين';
-      case 'IN_PROGRESS': return 'قيد التنفيذ';
-      case 'COMPLETED': return 'مكتملة';
-      case 'CLOSED': return 'مغلقة';
-      case 'REJECTED': return 'مرفوضة';
-      case 'ACCEPTED': return 'مقبولة';
-      default: return s.isNotEmpty ? s : 'غير محدد';
+      case 'PENDING':
+        return 'قيد الانتظار';
+      case 'ASSIGNED':
+        return 'تم التعيين';
+      case 'IN_PROGRESS':
+        return 'قيد التنفيذ';
+      case 'COMPLETED':
+        return 'مكتملة';
+      case 'CLOSED':
+        return 'مغلقة';
+      case 'REJECTED':
+        return 'مرفوضة';
+      case 'ACCEPTED':
+        return 'مقبولة';
+      default:
+        return s.isNotEmpty ? s : 'غير محدد';
     }
   }
 }
@@ -296,12 +315,14 @@ class _CustomDatePickerState extends State<_CustomDatePicker> {
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.all(Colors.white),
               padding: WidgetStateProperty.all(
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
               shape: WidgetStateProperty.all(
                 RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
-                  side: BorderSide(color: DesignTokens.brown.withValues(alpha: 0.5)),
+                  side: BorderSide(
+                    color: DesignTokens.brown,
+                  ),
                 ),
               ),
             ),
@@ -320,8 +341,13 @@ class _CustomDatePickerState extends State<_CustomDatePicker> {
                         todayHighlightColor: DesignTokens.brown,
                         selectionColor: DesignTokens.brown,
                         monthCellStyle: DateRangePickerMonthCellStyle(
-                          todayTextStyle: const TextStyle(color: DesignTokens.brown, fontWeight: FontWeight.bold),
-                          textStyle: TextStyle(color: DesignTokens.brown.withValues(alpha: 0.8)),
+                          todayTextStyle: const TextStyle(
+                            color: DesignTokens.brown,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textStyle: TextStyle(
+                            color: DesignTokens.brown.withValues(alpha: 0.8),
+                          ),
                         ),
                         headerStyle: const DateRangePickerHeaderStyle(
                           textAlign: TextAlign.center,
@@ -343,17 +369,10 @@ class _CustomDatePickerState extends State<_CustomDatePicker> {
                 },
               );
             },
-            child: Row(
-              children: [
-                Text(
-                  widget.selectedDate != null
-                      ? "${widget.selectedDate!.year}-${widget.selectedDate!.month.toString().padLeft(2, '0')}-${widget.selectedDate!.day.toString().padLeft(2, '0')}"
-                      : "اختر التاريخ",
-                  style: const TextStyle(color: DesignTokens.brown, fontSize: 13),
-                ),
-                const SizedBox(width: 8),
-                const Icon(FluentIcons.calendar, size: 14, color: DesignTokens.brown),
-              ],
+            child: const Icon(
+              FluentIcons.calendar,
+              size: 18,
+              color: DesignTokens.brown,
             ),
           ),
         ),

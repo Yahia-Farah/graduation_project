@@ -8,6 +8,7 @@
 
 - [Quick Facts](#quick-facts)
 - [Tech Stack](#tech-stack)
+- [Recent Updates](#recent-updates)
 - [Architecture Overview](#architecture-overview)
 - [Project Structure](#project-structure)
 - [Feature Modules](#feature-modules)
@@ -58,6 +59,16 @@
 | `flutter_screenutil` | ^5.9.3 | Responsive scaling for desktop |
 | `intl` | ^0.20.2 | Arabic date formatting |
 | `build_runner` | ^2.11.1 | Code generation (dev) |
+
+---
+
+## Recent Updates
+
+- **AI Analysis UI Overhaul**: The `AiAnalysisResultPage` was redesigned to match the application's overall fluent aesthetic (golden header, beige background, white content cards).
+- **Server-Side Filtering**: Refactored the filtering system in `CasesVm`, `JudgeCasesVm`, `JudgeArchiveVm`, and `JudgeDashboardVm` so that clicking on tabs/filters actively fetches fresh data from the server, replacing purely client-side filtering.
+- **Optimistic File Deletion**: Deleting case files now utilizes optimistic UI updates. Files vanish immediately from the UI without waiting for a server refresh, creating a much smoother experience.
+- **Automatic Riverpod Invalidations**: Assigning a judge or updating cases via `CaseDetailsDialog` now automatically invalidates `judgeCasesVmProvider` and `casesVmProvider`, keeping all views strictly in-sync.
+- **Error Handling on AI Analysis**: Missing or failed AI analysis results now present a proper `InfoBar` rather than silently failing to navigate.
 
 ---
 
@@ -311,14 +322,14 @@ The backend uses a consistent wrapper:
 {
   "success": true,
   "message": "...",
-  "data": { ... }
+  "data":  "..."
 }
 ```
 
 For paginated lists:
 ```json
 {
-  "data": [ ... ],
+  "data": [ "..." ],
   "pageInfo": {
     "currentPage": 0,
     "totalPages": 5,
@@ -350,6 +361,10 @@ For paginated lists:
 | GET | `/v1/admin/cases` | `/v1/judges/all-cases` | `/v1/lawyer/cases` | List cases (paginated) |
 | GET | `/v1/admin/cases/{id}` | `/v1/judges/case/{id}` | `/v1/lawyer/cases/{id}` | Get case details |
 | PATCH | `/v1/admin/cases/{id}/status` | `/v1/judges/case/{id}/status` | — | Update case status |
+| GET | `/v1/admin/cases/{id}/files/{name}` | — | `/v1/lawyer/cases/{id}/files/{name}` | Download case file bytes |
+| POST | `/v1/admin/cases/{id}/files` | — | `/v1/lawyer/cases/{id}/files` | Upload case file (multipart) |
+| DELETE | `/v1/admin/case-file/{id}` | — | `/v1/lawyer/case-file/{id}` | Delete case file |
+| POST | — | — | `/v1/lawyer/cases/request-access` | Request access to a case |
 
 **Query params for list:** `page`, `pageSize`, `q` (search), `status` (filter)
 
@@ -554,7 +569,7 @@ class Env {
 1. **Feature-first organization** — each feature is self-contained under `lib/features/`
 2. **Provider wiring files** — `*_providers.dart` at feature root wires DI for that feature
 3. **Role-based API paths** — data sources use `_pathForRole(role)` to select endpoints
-4. **Optimistic UI** — `CaseDetailsVm.changeStatus()` and `UsersViewModel.deleteUser()` update UI before server confirms
+4. **Optimistic UI** — extensively used for `CaseDetailsVm.changeStatus()`, `UsersViewModel.deleteUser()`, and `CaseFilesViewModel.deleteFile()` to update the UI before server confirmation.
 5. **RTL-first** — all UI uses `TextDirection.rtl`; Arabic labels and validators throughout
 6. **Fluent UI** — uses `fluent_ui` package (NOT Material); widgets: `ScaffoldPage`, `FluentApp`, `ContentDialog`, `Button`, etc.
 7. **Immutable state** — all state classes use `copyWith()` pattern

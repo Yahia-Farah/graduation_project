@@ -183,7 +183,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
             if (!isJudge)
               FilledButton(
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.white),
+                  backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
                   padding: WidgetStateProperty.all(
                     EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
                   ),
@@ -194,14 +194,14 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
                   children: [
                     Icon(
                       FluentIcons.cloud_upload,
-                      color: DesignTokens.brown,
+                      color: DesignTokens.white,
                       size: 16.sp,
                     ),
                     SizedBox(width: 8.w),
                     Text(
                       'رفع ملفات',
                       style: TextStyle(
-                        color: DesignTokens.brown,
+                        color: DesignTokens.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 14.sp,
                       ),

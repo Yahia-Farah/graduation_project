@@ -77,7 +77,7 @@ class CasesRemoteDs {
   Future<void> deleteCaseFile(String role, String fileId) async {
     final path = role.toUpperCase() == 'LAWYER'
         ? '/v1/lawyer/case-file/$fileId'
-        : '/v1/admin/case-file/$fileId'; // Assuming admin path structure, adjust if needed
+        : '/v1/admin/cases/case-file/$fileId'; // Assuming admin path structure, adjust if needed
         
     await _dio.delete(path);
   }

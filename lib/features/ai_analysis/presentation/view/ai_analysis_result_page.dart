@@ -15,52 +15,80 @@ class AiAnalysisResultPage extends ConsumerWidget {
     final result = aiState.viewingResult;
 
     if (result == null) {
-      return Directionality(
-        textDirection: TextDirection.rtl,
-        child: Center(
-          child: Text(
-            'لا توجد نتائج تحليل للعرض',
-            style: TextStyle(fontSize: 18.sp, color: DesignTokens.gray),
+      return ScaffoldPage(
+        padding: EdgeInsets.zero,
+        header: _buildHeader(context),
+        content: Container(
+          color: const Color(0xFFF7F5F0),
+          child: Center(
+            child: Text(
+              'لا توجد نتائج تحليل للعرض',
+              style: TextStyle(fontSize: 18.sp, color: DesignTokens.gray),
+            ),
           ),
         ),
       );
     }
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: ListView(
-        padding: EdgeInsets.all(16.w),
-        children: [
-          // Header
+    return ScaffoldPage(
+      padding: EdgeInsets.zero,
+      header: _buildHeader(context),
+      content: Container(
+        color: const Color(0xFFF7F5F0),
+        padding: EdgeInsets.all(24.w),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(
+                color: DesignTokens.brown.withValues(alpha: 0.3),
+              ),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: ListView(
+              padding: EdgeInsets.all(24.w),
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Icon(FluentIcons.branch_fork, size: 24.sp, color: DesignTokens.brown),
+                    SizedBox(width: 12.w),
+                    Text(
+                      'نتائج تحليل: ${result.caseTitle ?? 'قضية رقم #${result.caseNumber}'}',
+                      style: TextStyle(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        color: DesignTokens.brown,
+                      ),
+                    ),
+                  ],
+                ),
+          SizedBox(height: 8.h),
           Row(
             children: [
-              Icon(FluentIcons.branch_fork, size: 24.sp, color: DesignTokens.brown),
-              SizedBox(width: 12.w),
-              Text(
-                'نتائج تحليل القضية #${result.caseNumber}',
-                style: TextStyle(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.bold,
-                  color: DesignTokens.brown,
+              if (result.processedAt != null)
+                Text(
+                  'تاريخ التحليل: ${result.processedAt}',
+                  style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
                 ),
-              ),
+              if (result.processedAt != null && result.confidenceScore > 0)
+                Text('  •  ', style: TextStyle(color: DesignTokens.gray)),
+              if (result.confidenceScore > 0)
+                Text(
+                  'نسبة الثقة: ${(result.confidenceScore * 100).toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: result.confidenceScore > 0.8 ? DesignTokens.green : DesignTokens.brown,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
             ],
           ),
-          SizedBox(height: 8.h),
-          if (result.processedAt != null)
-            Text(
-              'تم التحليل في: ${result.processedAt}',
-              style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
-            ),
           SizedBox(height: 24.h),
 
           // Case Summary
-          if (result.caseSummary != null)
-            _buildSection(
-              title: 'ملخص القضية',
-              icon: FluentIcons.info,
-              child: _CaseSummarySection(summary: result.caseSummary!),
-            ),
+
 
           // Suggested Verdict
           if (result.caseSummary?.suggestedVerdict != null)
@@ -171,6 +199,36 @@ class AiAnalysisResultPage extends ConsumerWidget {
           SizedBox(height: 32.h),
         ],
       ),
+    ))));
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      height: 60.h,
+      color: const Color(0xFFDEB878),
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            'نتيجة التحليل الذكي',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: DesignTokens.brown,
+            ),
+          ),
+          SizedBox(width: 16.w),
+          IconButton(
+            icon: Icon(
+              FluentIcons.chevron_right,
+              size: 20.sp,
+              color: DesignTokens.brown,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -207,7 +265,12 @@ class AiAnalysisResultPage extends ConsumerWidget {
 
 class _CaseSummarySection extends StatelessWidget {
   final CaseSummary summary;
-  const _CaseSummarySection({required this.summary});
+  final int actualDefendantCount;
+  
+  const _CaseSummarySection({
+    required this.summary,
+    required this.actualDefendantCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +281,7 @@ class _CaseSummarySection extends StatelessWidget {
         _InfoRow('الاختصاص', summary.jurisdiction),
         _InfoRow('تاريخ الإيداع', summary.filingDate),
         _InfoRow('اسم النيابة', summary.prosecutorName),
-        _InfoRow('عدد المتهمين', summary.defendantCount.toString()),
+        _InfoRow('عدد المتهمين', actualDefendantCount.toString()),
         _InfoRow('عدد التهم', summary.chargeCount.toString()),
         _InfoRow('مخالفات إجرائية',
             summary.hasProceduralViolations ? 'نعم' : 'لا'),
@@ -237,7 +300,7 @@ class _SuggestedVerdictSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _InfoRow('الحكم', verdict.verdict),
-        _InfoRow('العقوبة المقترحة', verdict.recommendedPenalty),
+        _InfoRow('العقوبة المقترحة', verdict.penalty),
         _InfoRow('نسبة الثقة', '${(verdict.confidenceScore * 100).toStringAsFixed(1)}%'),
         if (verdict.operativeText.isNotEmpty) ...[
           SizedBox(height: 8.h),

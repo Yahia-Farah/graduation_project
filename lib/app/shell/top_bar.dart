@@ -32,7 +32,7 @@ class _TopBarState extends ConsumerState<TopBar> {
       textDirection: TextDirection.rtl,
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        margin: EdgeInsets.fromLTRB(0,24,0,0),
         decoration: const BoxDecoration(color: DesignTokens.beige),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -42,18 +42,22 @@ class _TopBarState extends ConsumerState<TopBar> {
               children: [
                 // Page title
                 Expanded(
-                  child: Text(
-                    widget.pageTitle,
-                    style: TextStyle(
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.w700,
-                      color: DesignTokens.brown,
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 22),
+                    child: Text(
+                      widget.pageTitle,
+                      style: TextStyle(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w700,
+                        color: DesignTokens.brown,
+                      ),
                     ),
                   ),
                 ),
 
                 // زر الجرس (دائرة بيضاء)
                 Container(
+                  margin: EdgeInsets.symmetric(horizontal: 22),
                   width: 44.w,
                   height: 44.h,
                   decoration: BoxDecoration(
@@ -95,7 +99,7 @@ class _TopBarState extends ConsumerState<TopBar> {
                 ),
               ],
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 16.h),
             Container(
               height: 1.h,
               width: double.infinity,

@@ -81,12 +81,7 @@ const appMenuItems = [
     ],
   ),
 
-  AppMenuItem(
-    keyName: 'profile',
-    title: 'الحساب الشخصي',
-    icon: FluentIcons.contact,
-    allowedRoles: [UserRole.admin, UserRole.lawyer, UserRole.judge],
-  ),
+
 
   AppMenuItem(
     keyName: 'settings',

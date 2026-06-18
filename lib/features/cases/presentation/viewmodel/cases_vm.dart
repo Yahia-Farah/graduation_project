@@ -72,7 +72,7 @@ class CasesVm extends Notifier<CasesState> {
 
   Future<void> search() async {
     state = state.copyWith(page: 0);
-    _applyFilters();
+    load(forceRefresh: true);
   }
 
   Future<void> nextPage() async {
@@ -87,7 +87,11 @@ class CasesVm extends Notifier<CasesState> {
     _applyFilters();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool forceRefresh = false}) async {
+    if (!forceRefresh && state.allItems.isNotEmpty) {
+      state = state.copyWith(loading: false, error: null);
+      return;
+    }
     state = state.copyWith(loading: true, error: null);
 
     try {
@@ -115,12 +119,12 @@ class CasesVm extends Notifier<CasesState> {
 
   void setStatusFilter(String status) {
     state = state.copyWith(statusFilter: status, page: 0);
-    _applyFilters();
+    load(forceRefresh: true);
   }
 
   void setDateFilter(DateTime? date) {
     state = state.copyWith(dateFilter: date, clearDate: date == null, page: 0);
-    _applyFilters();
+    load(forceRefresh: true);
   }
 
   void _applyFilters() {
@@ -134,7 +138,10 @@ class CasesVm extends Notifier<CasesState> {
     }
 
     if (state.statusFilter != 'ALL') {
-      filtered = filtered.where((c) => c.status == state.statusFilter).toList();
+      filtered = filtered
+          .where((c) =>
+              c.status.toUpperCase() == state.statusFilter.toUpperCase())
+          .toList();
     }
 
     if (state.dateFilter != null) {

@@ -75,7 +75,7 @@ class JudgeDashboardVm extends Notifier<JudgeDashboardState> {
 
   void search() {
     state = state.copyWith(page: 0);
-    _applyFilters();
+    load(forceRefresh: true);
   }
 
   void toggleCaseSelection(String caseId) {
@@ -104,7 +104,11 @@ class JudgeDashboardVm extends Notifier<JudgeDashboardState> {
     _applyFilters();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool forceRefresh = false}) async {
+    if (!forceRefresh && state.allItems.isNotEmpty) {
+      state = state.copyWith(loading: false, error: null);
+      return;
+    }
     state = state.copyWith(loading: true, error: null);
 
     try {

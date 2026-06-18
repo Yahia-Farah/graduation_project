@@ -46,17 +46,24 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
           Row(
             children: [
               // Search Box
-              SizedBox(
-                width: 300,
+              Expanded(
                 child: TextBox(
                   placeholder: _selectedTabIndex == 0
                       ? 'ابحث في الطلبات'
                       : (_selectedTabIndex == 1
                             ? 'ابحث في الطلبات المقبولة'
                             : 'ابحث في الطلبات المرفوضة'),
-                  suffix: const Padding(
+                  prefix: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Icon(FluentIcons.search, size: 14),
+                  ),
+                  suffix: _CustomDatePicker(
+                    selectedDate: _dateFilter,
+                    onDateChanged: (v) {
+                      setState(() {
+                        _dateFilter = v;
+                      });
+                    },
                   ),
                   onChanged: (v) {
                     setState(() {
@@ -64,16 +71,6 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
                     });
                   },
                 ),
-              ),
-              const Spacer(),
-              // Custom Syncfusion Date Picker
-              _CustomDatePicker(
-                selectedDate: _dateFilter,
-                onDateChanged: (v) {
-                  setState(() {
-                    _dateFilter = v;
-                  });
-                },
               ),
             ],
           ),
@@ -103,7 +100,7 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
       onTap: () {
         if (_selectedTabIndex == index) return;
         setState(() => _selectedTabIndex = index);
-        
+
         String newStatus;
         if (index == 0) {
           newStatus = 'PENDING';
@@ -144,10 +141,14 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
         var filteredRequests = requests;
         if (_searchQuery.isNotEmpty) {
           final q = _searchQuery.toLowerCase();
-          filteredRequests = filteredRequests.where((r) =>
-              r.lawyerName.toLowerCase().contains(q) ||
-              r.caseNumber.toLowerCase().contains(q) ||
-              r.requestId.toLowerCase().contains(q)).toList();
+          filteredRequests = filteredRequests
+              .where(
+                (r) =>
+                    r.lawyerName.toLowerCase().contains(q) ||
+                    r.caseNumber.toLowerCase().contains(q) ||
+                    r.requestId.toLowerCase().contains(q),
+              )
+              .toList();
         }
 
         if (_dateFilter != null) {
@@ -155,8 +156,8 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
           filteredRequests = filteredRequests.where((r) {
             if (r.requestedAt == null) return false;
             return r.requestedAt!.year == d.year &&
-                   r.requestedAt!.month == d.month &&
-                   r.requestedAt!.day == d.day;
+                r.requestedAt!.month == d.month &&
+                r.requestedAt!.day == d.day;
           }).toList();
         }
 
@@ -243,7 +244,7 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
               final dateStr = request.requestedAt != null
                   ? DateFormat('yyyy-MM-dd').format(request.requestedAt!)
                   : '-';
-                  
+
               return Container(
                 decoration: BoxDecoration(
                   border: Border(
@@ -261,18 +262,26 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: Text(request.requestId.substring(0, 8), textAlign: TextAlign.center),
-                    ),
-                    Expanded(
-                      flex: 2,
                       child: Text(
-                        request.lawyerName.isNotEmpty ? request.lawyerName : 'غير معروف',
+                        request.requestId.substring(0, 8),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     Expanded(
                       flex: 2,
-                      child: Text(request.caseNumber, textAlign: TextAlign.center),
+                      child: Text(
+                        request.lawyerName.isNotEmpty
+                            ? request.lawyerName
+                            : 'غير معروف',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        request.caseNumber,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     Expanded(
                       flex: 2,
@@ -297,7 +306,11 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
                               ),
                             ),
                             onPressed: () {
-                              ref.read(accessRequestsViewModelProvider.notifier).approveRequest(request.requestId);
+                              ref
+                                  .read(
+                                    accessRequestsViewModelProvider.notifier,
+                                  )
+                                  .approveRequest(request.requestId);
                             },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -323,7 +336,11 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
                               ),
                             ),
                             onPressed: () {
-                              ref.read(accessRequestsViewModelProvider.notifier).rejectRequest(request.requestId);
+                              ref
+                                  .read(
+                                    accessRequestsViewModelProvider.notifier,
+                                  )
+                                  .rejectRequest(request.requestId);
                             },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -347,7 +364,10 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
     );
   }
 
-  Widget _buildResolvedRequests(List<AccessRequestEntity> requests, {required bool isAccepted}) {
+  Widget _buildResolvedRequests(
+    List<AccessRequestEntity> requests, {
+    required bool isAccepted,
+  }) {
     return ListView.builder(
       itemCount: requests.length,
       padding: EdgeInsets.zero,
@@ -356,8 +376,10 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
         final dateStr = request.requestedAt != null
             ? DateFormat('yyyy-MM-dd').format(request.requestedAt!)
             : '-';
-        final reqId = request.requestId.length > 8 ? request.requestId.substring(0, 8) : request.requestId;
-        
+        final reqId = request.requestId.length > 8
+            ? request.requestId.substring(0, 8)
+            : request.requestId;
+
         return Container(
           decoration: BoxDecoration(
             border: Border(
@@ -395,10 +417,7 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
               ),
               const Spacer(),
               // Date
-              Text(
-                dateStr,
-                style: const TextStyle(color: DesignTokens.gray),
-              ),
+              Text(dateStr, style: const TextStyle(color: DesignTokens.gray)),
             ],
           ),
         );
@@ -444,7 +463,9 @@ class _CustomDatePickerState extends State<_CustomDatePicker> {
               shape: WidgetStateProperty.all(
                 RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
-                  side: BorderSide(color: DesignTokens.brown.withValues(alpha: 0.5)),
+                  side: BorderSide(
+                    color: DesignTokens.brown.withValues(alpha: 0.5),
+                  ),
                 ),
               ),
             ),
@@ -465,8 +486,13 @@ class _CustomDatePickerState extends State<_CustomDatePicker> {
                         todayHighlightColor: DesignTokens.brown,
                         selectionColor: DesignTokens.brown,
                         monthCellStyle: DateRangePickerMonthCellStyle(
-                          todayTextStyle: const TextStyle(color: DesignTokens.brown, fontWeight: FontWeight.bold),
-                          textStyle: TextStyle(color: DesignTokens.brown.withValues(alpha: 0.8)),
+                          todayTextStyle: const TextStyle(
+                            color: DesignTokens.brown,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textStyle: TextStyle(
+                            color: DesignTokens.brown.withValues(alpha: 0.8),
+                          ),
                         ),
                         headerStyle: const DateRangePickerHeaderStyle(
                           textAlign: TextAlign.center,
@@ -488,17 +514,10 @@ class _CustomDatePickerState extends State<_CustomDatePicker> {
                 },
               );
             },
-            child: Row(
-              children: [
-                Text(
-                  widget.selectedDate != null
-                      ? "${widget.selectedDate!.year}-${widget.selectedDate!.month.toString().padLeft(2, '0')}-${widget.selectedDate!.day.toString().padLeft(2, '0')}"
-                      : "اختر التاريخ",
-                  style: const TextStyle(color: DesignTokens.brown, fontSize: 13),
-                ),
-                const SizedBox(width: 8),
-                const Icon(FluentIcons.calendar, size: 14, color: DesignTokens.brown),
-              ],
+            child: const Icon(
+              FluentIcons.calendar,
+              size: 14,
+              color: DesignTokens.brown,
             ),
           ),
         ),

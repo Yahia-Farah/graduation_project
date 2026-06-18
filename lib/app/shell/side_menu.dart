@@ -35,9 +35,9 @@ class _SideMenuState extends ConsumerState<SideMenu> {
     final flatItems = _buildFlatItems(widget.items);
 
     return Container(
+      padding: EdgeInsets.all(16.w),
       width: 260.w,
-      padding: EdgeInsets.only(right: 16.w),
-      decoration: const BoxDecoration(color: DesignTokens.beige),
+      decoration: const BoxDecoration(color: DesignTokens.beige,border: Border.symmetric(vertical: BorderSide(color:DesignTokens.brown ))),
       child: Column(
         textDirection: TextDirection.rtl,
         crossAxisAlignment: CrossAxisAlignment.stretch,

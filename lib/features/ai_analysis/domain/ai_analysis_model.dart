@@ -17,6 +17,8 @@ class AiAnalysisResult {
   final List<String> completedAgents;
   final List<String> processingErrors;
   final String? processedAt;
+  final String? caseTitle;
+  final double confidenceScore;
 
   const AiAnalysisResult({
     required this.resultId,
@@ -37,6 +39,8 @@ class AiAnalysisResult {
     this.completedAgents = const [],
     this.processingErrors = const [],
     this.processedAt,
+    this.caseTitle,
+    this.confidenceScore = 0.0,
   });
 
   factory AiAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -49,7 +53,10 @@ class AiAnalysisResult {
       summaryObj = CaseSummary.fromJson(json['caseSummary']);
     } else {
       // Try parsing from flattened fields
-      if (json['court'] != null || json['prosecutorName'] != null) {
+      if (json['suggestedVerdict'] != null || 
+          json['court'] != null || 
+          json['prosecutorName'] != null || 
+          json.containsKey('hasProceduralViolations')) {
         summaryObj = CaseSummary(
           caseId: id,
           court: (json['court'] ?? '').toString(),
@@ -91,6 +98,8 @@ class AiAnalysisResult {
       completedAgents: _parseStringOrList(json['completedAgents']),
       processingErrors: _parseStringOrList(json['processingErrors']),
       processedAt: json['processedAt']?.toString() ?? json['createdAt']?.toString(),
+      caseTitle: json['caseTitle']?.toString(),
+      confidenceScore: (json['confidenceScore'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
@@ -172,14 +181,14 @@ class CaseSummary {
 
 class SuggestedVerdict {
   final String verdict;
-  final String recommendedPenalty;
+  final String penalty;
   final List<PerChargeRuling> perChargeRulings;
   final String operativeText;
   final double confidenceScore;
 
   const SuggestedVerdict({
     required this.verdict,
-    required this.recommendedPenalty,
+    required this.penalty,
     this.perChargeRulings = const [],
     required this.operativeText,
     required this.confidenceScore,
@@ -188,7 +197,7 @@ class SuggestedVerdict {
   factory SuggestedVerdict.fromJson(Map<String, dynamic> json) {
     return SuggestedVerdict(
       verdict: (json['verdict'] ?? '').toString(),
-      recommendedPenalty: (json['recommended_penalty'] ?? '').toString(),
+      penalty: (json['penalty'] ?? json['recommended_penalty'] ?? '').toString(),
       perChargeRulings:
           _parseList(json['per_charge_rulings'], PerChargeRuling.fromJson),
       operativeText: (json['operative_text'] ?? '').toString(),

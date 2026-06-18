@@ -79,27 +79,6 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: DesignTokens.brown.withValues(alpha: 0.5),
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      FluentIcons.calendar,
-                      size: 14,
-                      color: DesignTokens.gray,
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 16),

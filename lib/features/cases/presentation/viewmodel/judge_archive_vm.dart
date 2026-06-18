@@ -59,7 +59,7 @@ class JudgeArchiveVm extends Notifier<JudgeArchiveState> {
 
   void search() {
     state = state.copyWith(page: 0);
-    _applyFilters();
+    load(forceRefresh: true);
   }
 
   void nextPage() {
@@ -74,7 +74,11 @@ class JudgeArchiveVm extends Notifier<JudgeArchiveState> {
     _applyFilters();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool forceRefresh = false}) async {
+    if (!forceRefresh && state.allItems.isNotEmpty) {
+      state = state.copyWith(loading: false, error: null);
+      return;
+    }
     state = state.copyWith(loading: true, error: null);
 
     try {

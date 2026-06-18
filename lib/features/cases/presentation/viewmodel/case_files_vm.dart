@@ -130,13 +130,24 @@ class CaseFilesViewModel extends StateNotifier<CaseFilesState> {
 
   Future<void> deleteFile(String fileId) async {
     final repo = ref.read(casesRepoProvider);
-    state = state.copyWith(isLoading: true, clearError: true);
+    
+    final previousFiles = state.files;
+    final updatedFiles = previousFiles.where((f) => f.id != fileId).toList();
+    
+    state = state.copyWith(isLoading: true, clearError: true, files: updatedFiles);
+    
     try {
       await repo.deleteCaseFile(fileId);
-      await _loadFiles();
+      if (mounted) {
+        state = state.copyWith(isLoading: false);
+      }
     } catch (e) {
       if (mounted) {
-        state = state.copyWith(error: 'خطأ أثناء حذف الملف: $e', isLoading: false);
+        state = state.copyWith(
+          error: 'خطأ أثناء حذف الملف: $e', 
+          isLoading: false, 
+          files: previousFiles,
+        );
       }
     }
   }

@@ -4,7 +4,7 @@ class DesignTokens {
   // ===== Colors (بدّل القيم من Figma) =====
   static const Color brown = Color(0xFF905B3E); // Primary/Brand
   static const Color beige = Color(0xFFEAC179); // App background
-  static const Color white = Color(0xFFF9F7F2); // Cards/Surfaces
+  static const Color white = Color(0xFFFFFFFF); // Cards/Surfaces
   static const Color gray = Color(0xFF616161);
   static const Color black = Color(0xFF242425);
   static const Color green = Color(0xFF39621F);

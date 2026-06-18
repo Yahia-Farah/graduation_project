@@ -357,7 +357,7 @@ class _StatCard extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 20.sp,
                   fontWeight: FontWeight.w600,
                   color: DesignTokens.brown,
                 ),
@@ -374,7 +374,7 @@ class _StatCard extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 32.sp,
+                  fontSize: 42.sp,
                   fontWeight: FontWeight.bold,
                   color: DesignTokens.brown,
                 ),
@@ -382,7 +382,7 @@ class _StatCard extends StatelessWidget {
               SizedBox(width: 8.w),
               Text(
                 subtitle,
-                style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+                style: TextStyle(fontSize: 16.sp, color: DesignTokens.gray),
               ),
               const Spacer(),
               // Action button
@@ -403,7 +403,7 @@ class _StatCard extends StatelessWidget {
                 child: Text(
                   buttonLabel,
                   style: TextStyle(
-                    fontSize: 11.sp,
+                    fontSize: 14.sp,
                     color: DesignTokens.brown,
                     fontWeight: FontWeight.w600,
                   ),
@@ -542,7 +542,46 @@ class _CaseRow extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 6.w),
-                ],
+                ]
+                else ...[
+                  MouseRegion(
+                    cursor: SystemMouseCursors.forbidden,
+                    child: Button(
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(
+                          Color(0xffDFDFDF),
+                        ),
+                        padding: WidgetStateProperty.all(
+                          EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                        ),
+                        shape: WidgetStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                        ),
+                      ),
+                      onPressed: (){},
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            FluentIcons.add_friend,
+                            size: 12.sp,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            'معين',
+                            style: TextStyle(color: DesignTokens.gray, fontSize: 11.sp),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                ]
+                ,
+
                 // عرض button
                 Button(
                   style: ButtonStyle(

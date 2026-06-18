@@ -67,8 +67,8 @@ class HomeShell extends ConsumerWidget {
                   TopBar(pageTitle: currentItem.title),
                   Expanded(
                     child: Container(
-                      color: DesignTokens.beige,
-                      padding: const EdgeInsets.all(18),
+                      color: Color(0xffF9F7F2),
+                      padding: const EdgeInsets.all(16),
                       child: buildPage(currentItem.keyName, role),
                     ),
                   ),
