@@ -7,6 +7,7 @@ import '../../../../users/presentation/viewmodel/judges_viewmodel.dart';
 import '../../../../users/presentation/viewmodel/lawyers_viewmodel.dart';
 import '../../../cases_providers.dart';
 import '../../viewmodel/cases_vm.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 
 class AddCaseDialog extends ConsumerStatefulWidget {
@@ -182,7 +183,7 @@ class _AddCaseDialogState extends ConsumerState<AddCaseDialog> {
                             const ComboBoxItem<String>(value: '', child: Text('بدون')),
                             ...?(judgesState.valueOrNull?.map((j) => ComboBoxItem<String>(
                                   value: j.id,
-                                  child: Text('${j.firstName} ${j.lastName}'),
+                                  child: Text(('${j.firstName} ${j.lastName}').toArabicNumbers()),
                                 ))),
                           ],
                           onChanged: (v) => setState(() => _selectedJudgeId = v),
@@ -197,7 +198,7 @@ class _AddCaseDialogState extends ConsumerState<AddCaseDialog> {
                             const ComboBoxItem<String>(value: '', child: Text('بدون')),
                             ...?(lawyersState.valueOrNull?.map((l) => ComboBoxItem<String>(
                                   value: l.id,
-                                  child: Text('${l.firstName} ${l.lastName}'),
+                                  child: Text(('${l.firstName} ${l.lastName}').toArabicNumbers()),
                                 ))),
                           ],
                           onChanged: (v) => setState(() => _selectedLawyerId = v),

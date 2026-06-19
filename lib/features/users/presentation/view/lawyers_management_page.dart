@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/user_entity.dart';
 import '../viewmodel/lawyers_viewmodel.dart';
+import '../../../../app/shared_widgets/custom_search_bar.dart';
+import '../../../../app/shared_widgets/custom_date_picker.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 class LawyersManagementPage extends ConsumerStatefulWidget {
   const LawyersManagementPage({super.key});
@@ -17,6 +20,7 @@ class _LawyersManagementPageState
     extends ConsumerState<LawyersManagementPage> {
   int _selectedTabIndex = 0; // 0: الطلبات, 1: المستخدمين الحاليين, 2: اخرى
   String _searchQuery = '';
+  DateTime? _dateFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -46,36 +50,12 @@ class _LawyersManagementPageState
             children: [
               SizedBox(
                 width: 300,
-                child: TextBox(
+                child: CustomSearchBar(
                   placeholder: _searchPlaceholder,
                   onChanged: (value) => setState(() => _searchQuery = value),
-                  suffix: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(FluentIcons.search, size: 14),
-                  ),
                 ),
               ),
               const Spacer(),
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: DesignTokens.brown.withValues(alpha: 0.5),
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      FluentIcons.calendar,
-                      size: 14,
-                      color: DesignTokens.gray,
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -163,13 +143,23 @@ class _LawyersManagementPageState
 
     return state.when(
       data: (users) {
-        final requests = users.where((u) {
+        var list = users.where((u) {
           if (u.isApproved == true) return false;
           if (_searchQuery.isEmpty) return true;
           final q = _searchQuery.toLowerCase();
           return u.fullName.toLowerCase().contains(q) || u.id.toLowerCase().contains(q);
         }).toList();
-        if (requests.isEmpty) {
+        if (_dateFilter != null) {
+          final d = _dateFilter!;
+          list = list.where((u) {
+            if (u.createdAt == null) return false;
+            return u.createdAt!.year == d.year &&
+                u.createdAt!.month == d.month &&
+                u.createdAt!.day == d.day;
+          }).toList();
+        }
+
+        if (list.isEmpty) {
           return const Center(child: Text('لا توجد طلبات معلقة'));
         }
         return Column(
@@ -223,10 +213,10 @@ class _LawyersManagementPageState
             // Table Rows
             Expanded(
               child: ListView.builder(
-                itemCount: requests.length,
+                itemCount: list.length,
                 padding: EdgeInsets.zero,
                 itemBuilder: (context, index) {
-                  final req = requests[index];
+                  final req = list[index];
                   return Container(
                     decoration: BoxDecoration(
                       border: Border(
@@ -341,7 +331,7 @@ class _LawyersManagementPageState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('حدث خطأ: $e'),
+            Text(('حدث خطأ: $e').toArabicNumbers()),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => ref.invalidate(lawyersViewModelProvider),
@@ -362,12 +352,23 @@ class _LawyersManagementPageState
 
     return state.when(
       data: (users) {
-        final lawyers = users.where((u) {
+        var lawyers = users.where((u) {
           if (!(u.isApproved == true && u.isActive == true)) return false;
           if (_searchQuery.isEmpty) return true;
           final q = _searchQuery.toLowerCase();
           return u.fullName.toLowerCase().contains(q) || u.id.toLowerCase().contains(q);
         }).toList();
+
+        if (_dateFilter != null) {
+          final d = _dateFilter!;
+          lawyers = lawyers.where((u) {
+            if (u.createdAt == null) return false;
+            return u.createdAt!.year == d.year &&
+                u.createdAt!.month == d.month &&
+                u.createdAt!.day == d.day;
+          }).toList();
+        }
+
         if (lawyers.isEmpty) {
           return const Center(child: Text('لا يوجد محامين حاليين'));
         }
@@ -446,7 +447,7 @@ class _LawyersManagementPageState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('حدث خطأ: $e'),
+            Text(('حدث خطأ: $e').toArabicNumbers()),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => ref.invalidate(lawyersViewModelProvider),
@@ -668,7 +669,7 @@ class _LawyersManagementPageState
       builder: (ctx) {
         return ContentDialog(
           title: const Text('تأكيد الحذف'),
-          content: Text('هل أنت متأكد من حذف المحامي ${user.fullName}؟'),
+          content: Text(('هل أنت متأكد من حذف المحامي ${user.fullName}؟').toArabicNumbers()),
           actions: [
             Button(
               child: const Text('إلغاء'),
@@ -701,12 +702,23 @@ class _LawyersManagementPageState
 
     return state.when(
       data: (users) {
-        final lawyers = users.where((u) {
+        var lawyers = users.where((u) {
           if (!(u.isApproved == true && u.isActive == false)) return false;
           if (_searchQuery.isEmpty) return true;
           final q = _searchQuery.toLowerCase();
           return u.fullName.toLowerCase().contains(q) || u.id.toLowerCase().contains(q);
         }).toList();
+
+        if (_dateFilter != null) {
+          final d = _dateFilter!;
+          lawyers = lawyers.where((u) {
+            if (u.createdAt == null) return false;
+            return u.createdAt!.year == d.year &&
+                u.createdAt!.month == d.month &&
+                u.createdAt!.day == d.day;
+          }).toList();
+        }
+
         if (lawyers.isEmpty) {
           return const Center(child: Text('لا يوجد محامين غير نشطين'));
         }
@@ -777,7 +789,7 @@ class _LawyersManagementPageState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('حدث خطأ: $e'),
+            Text(('حدث خطأ: $e').toArabicNumbers()),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => ref.invalidate(lawyersViewModelProvider),

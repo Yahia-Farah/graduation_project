@@ -6,12 +6,28 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../domain/case_model.dart';
 import '../viewmodel/judge_archive_vm.dart';
 import 'widgets/case_details_dialog.dart';
+import '../../../../app/shared_widgets/custom_search_bar.dart';
+import '../../../../app/shared_widgets/custom_date_picker.dart';
+import '../../../../core/utils/arabic_numbers_extension.dart';
 
-class JudgeArchivePage extends ConsumerWidget {
+class JudgeArchivePage extends ConsumerStatefulWidget {
   const JudgeArchivePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JudgeArchivePage> createState() => _JudgeArchivePageState();
+}
+
+class _JudgeArchivePageState extends ConsumerState<JudgeArchivePage> {
+  DateTime? _dateFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateFilter = ref.read(judgeArchiveVmProvider).dateFilter;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final st = ref.watch(judgeArchiveVmProvider);
     final vm = ref.read(judgeArchiveVmProvider.notifier);
 
@@ -24,26 +40,22 @@ class JudgeArchivePage extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 40.h,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: DesignTokens.brown.withValues(alpha: 0.3),
-                    ),
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: TextBox(
+                  child: CustomSearchBar(
                     placeholder: 'ابحث في الأرشيف',
-                    textAlign: TextAlign.right,
-                    highlightColor: Colors.transparent,
-                    unfocusedColor: Colors.transparent,
                     prefix: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.w),
-                      child: Icon(
-                        FluentIcons.calendar,
-                        size: 16.sp,
-                        color: DesignTokens.gray,
+                      child: CustomDatePicker(
+                        borderless: true,
+                        iconSize: 16.sp,
+                        selectedDate: _dateFilter,
+                        onDateChanged: (v) {
+                          setState(() {
+                            _dateFilter = v;
+                            vm.setDateFilter(v);
+                          });
+                        },
                       ),
                     ),
                     suffix: Padding(
@@ -52,12 +64,6 @@ class JudgeArchivePage extends ConsumerWidget {
                         FluentIcons.search,
                         size: 16.sp,
                         color: DesignTokens.gray,
-                      ),
-                    ),
-                    decoration: WidgetStateProperty.all(
-                      const BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.fromBorderSide(BorderSide.none),
                       ),
                     ),
                     onChanged: vm.setQuery,
@@ -150,8 +156,8 @@ class JudgeArchivePage extends ConsumerWidget {
                 ),
                 SizedBox(width: 12.w),
                 Text(
-                  "${st.pageInfo.currentPage + 1} / ${st.pageInfo.totalPages}",
-                  style: TextStyle(fontSize: 12.sp),
+                  "${st.pageInfo.currentPage + 1} / ${st.pageInfo.totalPages}".toArabicNumbers(),
+                  style: TextStyle(fontSize: 14.sp),
                 ),
                 SizedBox(width: 12.w),
                 IconButton(
@@ -208,7 +214,7 @@ class _ArchiveRow extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Text('#${c.caseNumber}',
+            child: Text('#${c.caseNumber}'.toArabicNumbers(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14.sp)),
           ),

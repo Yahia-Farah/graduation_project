@@ -5,6 +5,7 @@ import '../../domain/user_entity.dart';
 import '../viewmodel/users_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'add_user_dialog.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 class UsersManagementPage extends ConsumerWidget {
   const UsersManagementPage({super.key, this.roleFilter});
@@ -79,7 +80,7 @@ class UsersManagementPage extends ConsumerWidget {
                   error: (e, st) => Center(
                     child: ContentDialog(
                       title: const Text('تنبيه'),
-                      content: Text('حدث خطأ: $e'),
+                      content: Text(('حدث خطأ: $e').toArabicNumbers()),
                       actions: [
                         FilledButton(
                           onPressed: () {
@@ -228,7 +229,7 @@ class UsersManagementPage extends ConsumerWidget {
       builder: (ctx) {
         return ContentDialog(
           title: const Text('تأكيد الحذف'),
-          content: Text('هل أنت متأكد من حذف المستخدم ${user.fullName}؟'),
+          content: Text(('هل أنت متأكد من حذف المستخدم ${user.fullName}؟').toArabicNumbers()),
           actions: [
             Button(
               child: const Text('إلغاء'),

@@ -7,12 +7,28 @@ import '../../ai_analysis/presentation/viewmodel/ai_analysis_vm.dart';
 import '../../cases/domain/case_model.dart';
 import 'viewmodel/judge_dashboard_vm.dart';
 import '../../cases/presentation/view/widgets/case_details_dialog.dart';
+import '../../../../app/shared_widgets/custom_search_bar.dart';
+import '../../../../app/shared_widgets/custom_date_picker.dart';
+import '../../../../core/utils/arabic_numbers_extension.dart';
 
-class JudgeDashboardPage extends ConsumerWidget {
+class JudgeDashboardPage extends ConsumerStatefulWidget {
   const JudgeDashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JudgeDashboardPage> createState() => _JudgeDashboardPageState();
+}
+
+class _JudgeDashboardPageState extends ConsumerState<JudgeDashboardPage> {
+  DateTime? _dateFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateFilter = ref.read(judgeDashboardVmProvider).dateFilter;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final st = ref.watch(judgeDashboardVmProvider);
     final vm = ref.read(judgeDashboardVmProvider.notifier);
     final aiState = ref.watch(aiAnalysisVmProvider);
@@ -29,27 +45,33 @@ class JudgeDashboardPage extends ConsumerWidget {
               Expanded(
                 child: _StatCard(
                   title: 'القضايا الجديدة',
-                  value: '${st.newCount}',
-                  subtitle: 'قضية جديد',
+                  value: '${st.newCount}'.toArabicNumbers(),
+                  subtitle: 'قضية جديدة',
+                  buttonLabel: 'عرض القضايا',
                   icon: FluentIcons.folder,
+                  onPressed: () {},
                 ),
               ),
               SizedBox(width: 16.w),
               Expanded(
                 child: _StatCard(
                   title: 'القضايا الجاري تحليلها',
-                  value: '${st.inProgressCount}',
+                  value: '${st.inProgressCount}'.toArabicNumbers(),
                   subtitle: 'قضية',
+                  buttonLabel: 'عرض القضايا',
                   icon: FluentIcons.clock,
+                  onPressed: () {},
                 ),
               ),
               SizedBox(width: 16.w),
               Expanded(
                 child: _StatCard(
                   title: 'القضايا المكتملة',
-                  value: '${st.completedCount}',
+                  value: '${st.completedCount}'.toArabicNumbers(),
                   subtitle: 'قضية مكتملة',
+                  buttonLabel: 'عرض القضايا',
                   icon: FluentIcons.check_mark,
+                  onPressed: () {},
                 ),
               ),
             ],
@@ -68,7 +90,7 @@ class JudgeDashboardPage extends ConsumerWidget {
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: aiState.runningTasks
-                      .map((t) => Text('القضية #${t.caseNumber}'))
+                      .map((t) => Text(('القضية #${t.caseNumber}').toArabicNumbers()))
                       .toList(),
                 ),
                 severity: InfoBarSeverity.info,
@@ -122,26 +144,22 @@ class JudgeDashboardPage extends ConsumerWidget {
             children: [
               // Search Box
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 40.h,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: DesignTokens.brown.withValues(alpha: 0.3),
-                    ),
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: TextBox(
+                  child: CustomSearchBar(
                     placeholder: 'ابحث في القضايا',
-                    textAlign: TextAlign.right,
-                    highlightColor: Colors.transparent,
-                    unfocusedColor: Colors.transparent,
                     prefix: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.w),
-                      child: Icon(
-                        FluentIcons.calendar,
-                        size: 16.sp,
-                        color: DesignTokens.gray,
+                      child: CustomDatePicker(
+                        borderless: true,
+                        iconSize: 16.sp,
+                        selectedDate: _dateFilter,
+                        onDateChanged: (v) {
+                          setState(() {
+                            _dateFilter = v;
+                            vm.setDateFilter(v);
+                          });
+                        },
                       ),
                     ),
                     suffix: Padding(
@@ -152,60 +170,9 @@ class JudgeDashboardPage extends ConsumerWidget {
                         color: DesignTokens.gray,
                       ),
                     ),
-                    decoration: WidgetStateProperty.all(
-                      const BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.fromBorderSide(BorderSide.none),
-                      ),
-                    ),
                     onChanged: vm.setQuery,
                     onSubmitted: (_) => vm.search(),
                   ),
-                ),
-              ),
-              SizedBox(width: 16.w),
-              // Analyze Now Button
-              FilledButton(
-                style: ButtonStyle(
-                  backgroundColor:
-                      WidgetStateProperty.all(DesignTokens.brown),
-                  padding: WidgetStateProperty.all(
-                    EdgeInsets.symmetric(horizontal: 32.w, vertical: 10.h),
-                  ),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                  ),
-                ),
-                onPressed: st.selectedCaseIds.isEmpty
-                    ? null
-                    : () {
-                        for (final caseId in st.selectedCaseIds) {
-                          final caseModel = st.allItems
-                              .where((c) => c.id == caseId)
-                              .firstOrNull;
-                          if (caseModel != null) {
-                            aiVm.startAnalysis(
-                                caseId, caseModel.caseNumber);
-                          }
-                        }
-                        vm.clearSelection();
-                      },
-                child: Row(
-                  children: [
-                    Icon(FluentIcons.branch_fork, size: 16.sp),
-                    SizedBox(width: 8.w),
-                    Text(
-                      st.selectedCaseIds.isEmpty
-                          ? 'حلل الآن'
-                          : 'حلل الآن (${st.selectedCaseIds.length})',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
@@ -267,6 +234,17 @@ class JudgeDashboardPage extends ConsumerWidget {
                     ),
                   ),
                 ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'الإجراء',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -300,18 +278,16 @@ class JudgeDashboardPage extends ConsumerWidget {
                           padding: EdgeInsets.zero,
                           itemBuilder: (context, index) {
                             final c = st.items[index];
-                            final isSelected =
-                                st.selectedCaseIds.contains(c.id);
                             final isAnalyzing =
                                 aiState.isAnalyzing(c.id);
 
                             return _DashboardRow(
                               c: c,
                               isLast: index == st.items.length - 1,
-                              isSelected: isSelected,
                               isAnalyzing: isAnalyzing,
-                              onToggle: () =>
-                                  vm.toggleCaseSelection(c.id),
+                              onAnalyze: () {
+                                aiVm.startAnalysis(c.id, c.caseNumber);
+                              },
                               onTap: () {
                                 showDialog(
                                   context: context,
@@ -355,7 +331,7 @@ class JudgeDashboardPage extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(4.r),
                         ),
                         child: Text(
-                          '${i + 1}',
+                          '${i + 1}'.toArabicNumbers(),
                           style: TextStyle(
                             color: i == st.pageInfo.currentPage
                                 ? Colors.white
@@ -375,7 +351,7 @@ class JudgeDashboardPage extends ConsumerWidget {
                           fontSize: 12.sp,
                           color: DesignTokens.gray)),
                   SizedBox(width: 4.w),
-                  Text('${st.pageInfo.totalPages}',
+                  Text('${st.pageInfo.totalPages}'.toArabicNumbers(),
                       style: TextStyle(
                           fontSize: 12.sp,
                           color: DesignTokens.gray)),
@@ -401,48 +377,92 @@ class _StatCard extends StatelessWidget {
   final String title;
   final String value;
   final String subtitle;
+  final String buttonLabel;
   final IconData icon;
+  final VoidCallback onPressed;
 
   const _StatCard({
     required this.title,
     required this.value,
     required this.subtitle,
+    required this.buttonLabel,
     required this.icon,
+    required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 16.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: DesignTokens.brown.withValues(alpha: 0.3)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Top row: icon + title (right), info icon (left)
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 20.sp, color: DesignTokens.brown),
-              SizedBox(width: 8.w),
+              Icon(icon, size: 16.sp, color: DesignTokens.brown),
+              SizedBox(width: 6.w),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 18.sp,
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w600,
+                  color: DesignTokens.brown,
+                ),
+              ),
+              const Spacer(),
+              Icon(FluentIcons.info, size: 14.sp, color: DesignTokens.gray),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          // Bottom row: value (right), button (left)
+          Row(
+            children: [
+              // Value + subtitle
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 42.sp,
                   fontWeight: FontWeight.bold,
                   color: DesignTokens.brown,
                 ),
               ),
+              SizedBox(width: 8.w),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 16.sp, color: DesignTokens.gray),
+              ),
+              const Spacer(),
+              // Action button
+              Button(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.transparent),
+                  padding: WidgetStateProperty.all(
+                    EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  ),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                      side: BorderSide(color: DesignTokens.brown),
+                    ),
+                  ),
+                ),
+                onPressed: onPressed,
+                child: Text(
+                  buttonLabel,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: DesignTokens.brown,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            '$value $subtitle',
-            style: TextStyle(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.bold,
-              color: DesignTokens.brown,
-            ),
           ),
         ],
       ),
@@ -455,22 +475,23 @@ class _StatCard extends StatelessWidget {
 class _DashboardRow extends StatelessWidget {
   final CaseModel c;
   final bool isLast;
-  final bool isSelected;
   final bool isAnalyzing;
-  final VoidCallback onToggle;
-  final VoidCallback? onTap;
+  final VoidCallback onAnalyze;
+  final VoidCallback onTap;
 
   const _DashboardRow({
     required this.c,
     required this.isLast,
-    required this.isSelected,
     required this.isAnalyzing,
-    required this.onToggle,
-    this.onTap,
+    required this.onAnalyze,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompleted = c.status.toUpperCase() == 'COMPLETED';
+    final bool canAnalyze = !isCompleted && !isAnalyzing;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -491,28 +512,8 @@ class _DashboardRow extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('#${c.caseNumber}',
+                Text('#${c.caseNumber}'.toArabicNumbers(),
                     style: TextStyle(fontSize: 14.sp)),
-                SizedBox(width: 8.w),
-                if (isAnalyzing)
-                  SizedBox(
-                    width: 16.w,
-                    height: 16.h,
-                    child: const ProgressRing(strokeWidth: 2),
-                  )
-                else
-                  Checkbox(
-                    checked: isSelected,
-                    onChanged: (_) => onToggle(),
-                    style: CheckboxThemeData(
-                      checkedDecoration: WidgetStateProperty.all(
-                        BoxDecoration(
-                          color: DesignTokens.brown,
-                          borderRadius: BorderRadius.circular(4.r),
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -527,7 +528,7 @@ class _DashboardRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              '${c.createdAt.day}-${c.createdAt.month}-${c.createdAt.year}',
+              '${c.createdAt.day}-${c.createdAt.month}-${c.createdAt.year}'.toArabicNumbers(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
             ),
@@ -538,6 +539,81 @@ class _DashboardRow extends StatelessWidget {
               _statusLabel(c.status),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Analyze Button
+                Button(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(
+                      canAnalyze ? DesignTokens.brown : const Color(0xffDFDFDF),
+                    ),
+                    padding: WidgetStateProperty.all(
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    ),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                  ),
+                  onPressed: canAnalyze ? onAnalyze : null,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isAnalyzing)
+                        SizedBox(
+                          width: 12.sp,
+                          height: 12.sp,
+                          child: const ProgressRing(strokeWidth: 2),
+                        )
+                      else
+                        Icon(FluentIcons.branch_fork, size: 12.sp, color: canAnalyze ? Colors.white : DesignTokens.gray),
+                      SizedBox(width: 4.w),
+                      Text(
+                        'حلل الآن',
+                        style: TextStyle(
+                          color: canAnalyze ? Colors.white : DesignTokens.gray,
+                          fontSize: 11.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                // View Button
+                Button(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(
+                      DesignTokens.brown,
+                    ),
+                    padding: WidgetStateProperty.all(
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    ),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                  ),
+                  onPressed: onTap,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(FluentIcons.view, size: 12.sp, color: Colors.white),
+                      SizedBox(width: 4.w),
+                      Text(
+                        'عرض',
+                        style: TextStyle(color: Colors.white, fontSize: 11.sp),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],

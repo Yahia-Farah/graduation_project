@@ -7,6 +7,10 @@ import '../../cases/domain/case_model.dart';
 import '../../cases/presentation/viewmodel/cases_vm.dart';
 import '../../cases/presentation/view/widgets/case_details_dialog.dart';
 import 'viewmodel/lawyer_dashboard_vm.dart';
+import 'viewmodel/lawyer_sent_requests_vm.dart';
+import '../../../../app/shared_widgets/custom_search_bar.dart';
+import '../../../../core/utils/arabic_numbers_extension.dart';
+import '../../access_requests/domain/access_request_entity.dart';
 
 class LawyerDashboardPage extends ConsumerStatefulWidget {
   const LawyerDashboardPage({super.key});
@@ -33,6 +37,8 @@ class _LawyerDashboardPageState extends ConsumerState<LawyerDashboardPage> {
   Widget build(BuildContext context) {
     final st = ref.watch(casesVmProvider);
     final vmState = ref.watch(lawyerDashboardVmProvider);
+    final sentRequestsState = ref.watch(sentRequestsVmProvider);
+    final sentRequestsVm = ref.read(sentRequestsVmProvider.notifier);
 
     ref.listen<LawyerDashboardState>(lawyerDashboardVmProvider, (previous, next) {
       if (next.requestSuccessMessage != null && (previous?.requestSuccessMessage != next.requestSuccessMessage)) {
@@ -89,7 +95,7 @@ class _LawyerDashboardPageState extends ConsumerState<LawyerDashboardPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextBox(
+                      child: CustomSearchBar(
                         controller: _caseNumberController,
                         placeholder: 'ادخل رقم القضية',
                         suffixMode: OverlayVisibilityMode.always,
@@ -97,11 +103,6 @@ class _LawyerDashboardPageState extends ConsumerState<LawyerDashboardPage> {
                           padding: EdgeInsets.symmetric(horizontal: 8.w),
                           child: Icon(FluentIcons.search, size: 14.sp, color: DesignTokens.gray),
                         ),
-                        decoration: WidgetStateProperty.all(BoxDecoration(
-                          borderRadius: BorderRadius.circular(8.r),
-                          border: Border.all(color: DesignTokens.brown.withValues(alpha: 0.3)),
-                          color: Colors.white,
-                        )),
                       ),
                     ),
                     SizedBox(width: 16.w),
@@ -192,14 +193,30 @@ class _LawyerDashboardPageState extends ConsumerState<LawyerDashboardPage> {
             SizedBox(height: 24.h),
           ],
 
-          // Section: Sent Requests (Empty state since no GET API exists)
-          Text(
-            'الطلبات المرسلة',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
-              color: DesignTokens.brown,
-            ),
+          // Section: Sent Requests
+          Row(
+            children: [
+              Text(
+                'الطلبات المرسلة',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: DesignTokens.brown,
+                ),
+              ),
+              const Spacer(),
+              ComboBox<String>(
+                value: sentRequestsState.statusFilter,
+                items: const [
+                  ComboBoxItem(value: 'PENDING', child: Text('قيد الانتظار')),
+                  ComboBoxItem(value: 'APPROVED', child: Text('مقبولة')),
+                  ComboBoxItem(value: 'REJECTED', child: Text('مرفوضة')),
+                ],
+                onChanged: (v) {
+                  if (v != null) sentRequestsVm.setStatusFilter(v);
+                },
+              ),
+            ],
           ),
           SizedBox(height: 12.h),
           Expanded(
@@ -209,15 +226,38 @@ class _LawyerDashboardPageState extends ConsumerState<LawyerDashboardPage> {
                 borderRadius: BorderRadius.circular(16.r),
                 border: Border.all(color: DesignTokens.lightGray),
               ),
-              child: Center(
-                child: Text(
-                  'لم يتم إرسال طلبات وصول من هذا المستخدم بعد',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    color: DesignTokens.brown,
-                  ),
-                ),
-              ),
+              child: sentRequestsState.loading && sentRequestsState.requests.isEmpty
+                  ? const Center(child: ProgressRing())
+                  : sentRequestsState.requests.isEmpty
+                      ? Center(
+                          child: Text(
+                            'لا توجد طلبات',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: DesignTokens.gray,
+                            ),
+                          ),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _SentRequestsTableHeader(),
+                            Expanded(
+                              child: ListView.separated(
+                                itemCount: sentRequestsState.requests.length,
+                                separatorBuilder: (_, _) => Container(
+                                  height: 1.h,
+                                  color: DesignTokens.brown.withValues(alpha: 0.2),
+                                ),
+                                itemBuilder: (context, i) {
+                                  return _SentRequestRow(
+                                    request: sentRequestsState.requests[i],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
             ),
           ),
         ],
@@ -381,5 +421,141 @@ class _CaseRow extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime d) => "${d.day}-${d.month}-${d.year}";
+  String _formatDate(DateTime d) => "${d.day}-${d.month}-${d.year}".toArabicNumbers();
+}
+
+// ─── Sent Requests Table ─────────────────────────────────────────────
+class _SentRequestsTableHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: DesignTokens.beige,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              'رقم الطلب',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'رقم القضية',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'تاريخ الطلب',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'حالة الطلب',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SentRequestRow extends StatelessWidget {
+  const _SentRequestRow({required this.request});
+  final AccessRequestEntity request;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.transparent,
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              request.requestId.length >= 8 
+                  ? "#${request.requestId.substring(0, 8)}".toArabicNumbers()
+                  : "#${request.requestId}".toArabicNumbers(),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14.sp),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              "#${request.caseNumber}".toArabicNumbers(),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _formatDate(request.requestedAt),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14.sp),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _statusLabel(request.status),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: _statusColor(request.status),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? d) {
+    if (d == null) return "غير محدد";
+    return "${d.day}-${d.month}-${d.year}".toArabicNumbers();
+  }
+
+  String _statusLabel(String s) {
+    switch (s.toUpperCase()) {
+      case 'PENDING':
+        return 'قيد الانتظار';
+      case 'APPROVED':
+        return 'مقبولة';
+      case 'REJECTED':
+        return 'مرفوضة';
+      default:
+        return s;
+    }
+  }
+
+  Color _statusColor(String s) {
+    switch (s.toUpperCase()) {
+      case 'PENDING':
+        return DesignTokens.brown;
+      case 'APPROVED':
+        return const Color(0xFF0F7A4D);
+      case 'REJECTED':
+        return DesignTokens.red;
+      default:
+        return DesignTokens.gray;
+    }
+  }
 }

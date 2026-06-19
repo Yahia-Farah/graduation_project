@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/design_tokens.dart';
 import '../../features/notifications/presentation/viewmodel/notifications_vm.dart';
 import '../../features/notifications/presentation/widgets/notifications_flyout.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 class TopBar extends ConsumerStatefulWidget {
   const TopBar({super.key, required this.pageTitle, this.onBellTap});
@@ -80,7 +81,7 @@ class _TopBarState extends ConsumerState<TopBar> {
                               top: -4,
                               right: -4,
                               child: InfoBadge(
-                                source: Text('${notificationsState.unreadCount}'),
+                                source: Text(('${notificationsState.unreadCount}').toArabicNumbers()),
                                 color: Colors.red,
                               ),
                             ),

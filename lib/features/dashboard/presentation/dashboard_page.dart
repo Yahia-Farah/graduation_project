@@ -16,7 +16,7 @@ import '../../users/presentation/viewmodel/lawyers_viewmodel.dart';
 import '../../access_requests/presentation/viewmodel/access_requests_viewmodel.dart';
 import '../../access_requests/domain/access_request_entity.dart';
 import '../../users/presentation/viewmodel/users_viewmodel.dart';
-
+import '../../../core/utils/arabic_numbers_extension.dart';
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
@@ -482,7 +482,7 @@ class _CaseRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              "#${c.caseNumber}",
+              "#${c.caseNumber}".toArabicNumbers(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
             ),
@@ -498,7 +498,7 @@ class _CaseRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              _formatDate(c.createdAt),
+              _formatDate(c.createdAt).toArabicNumbers(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
             ),
@@ -694,7 +694,7 @@ class _AccessRequestRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              "#${request.requestId.length > 5 ? request.requestId.substring(0, 5) : request.requestId}",
+              "#${request.requestId.length > 5 ? request.requestId.substring(0, 5) : request.requestId}".toArabicNumbers(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
             ),
@@ -710,7 +710,7 @@ class _AccessRequestRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              "#${request.caseNumber}",
+              "#${request.caseNumber}".toArabicNumbers(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.sp),
             ),
@@ -771,14 +771,4 @@ class _AccessRequestRow extends StatelessWidget {
   }
 }
 
-extension ArabicNumbers on String {
-  String toArabicNumbers() {
-    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    String result = this;
-    for (int i = 0; i < english.length; i++) {
-      result = result.replaceAll(english[i], arabic[i]);
-    }
-    return result;
-  }
-}
+

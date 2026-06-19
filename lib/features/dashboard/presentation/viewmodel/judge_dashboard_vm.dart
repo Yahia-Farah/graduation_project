@@ -16,6 +16,7 @@ class JudgeDashboardState {
   final int pageSize;
   final String query;
   final Set<String> selectedCaseIds;
+  final DateTime? dateFilter;
 
   const JudgeDashboardState({
     this.loading = false,
@@ -30,6 +31,7 @@ class JudgeDashboardState {
     this.pageSize = 10,
     this.query = '',
     this.selectedCaseIds = const {},
+    this.dateFilter,
   });
 
   JudgeDashboardState copyWith({
@@ -44,6 +46,8 @@ class JudgeDashboardState {
     int? page,
     String? query,
     Set<String>? selectedCaseIds,
+    DateTime? dateFilter,
+    bool clearDateFilter = false,
   }) {
     return JudgeDashboardState(
       loading: loading ?? this.loading,
@@ -58,6 +62,7 @@ class JudgeDashboardState {
       pageSize: pageSize,
       query: query ?? this.query,
       selectedCaseIds: selectedCaseIds ?? this.selectedCaseIds,
+      dateFilter: clearDateFilter ? null : (dateFilter ?? this.dateFilter),
     );
   }
 }
@@ -71,6 +76,11 @@ class JudgeDashboardVm extends Notifier<JudgeDashboardState> {
 
   void setQuery(String v) {
     state = state.copyWith(query: v, error: null);
+  }
+
+  void setDateFilter(DateTime? date) {
+    state = state.copyWith(dateFilter: date, clearDateFilter: date == null, page: 0);
+    _applyFilters();
   }
 
   void search() {
@@ -151,6 +161,14 @@ class JudgeDashboardVm extends Notifier<JudgeDashboardState> {
               c.caseNumber.toLowerCase().contains(q) ||
               c.courtRuling.toLowerCase().contains(q))
           .toList();
+    }
+
+    if (state.dateFilter != null) {
+      final d = state.dateFilter!;
+      filtered = filtered.where((c) => 
+          c.createdAt.year == d.year &&
+          c.createdAt.month == d.month &&
+          c.createdAt.day == d.day).toList();
     }
 
     final totalElements = filtered.length;

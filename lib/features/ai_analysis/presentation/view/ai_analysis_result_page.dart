@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/ai_analysis_model.dart';
 import '../viewmodel/ai_analysis_vm.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 class AiAnalysisResultPage extends ConsumerWidget {
   const AiAnalysisResultPage({super.key});
@@ -88,9 +89,15 @@ class AiAnalysisResultPage extends ConsumerWidget {
           SizedBox(height: 24.h),
 
           // Case Summary
-
-
-          // Suggested Verdict
+          if (result.caseSummary != null)
+            _buildSection(
+              title: 'ملخص القضية',
+              icon: FluentIcons.info,
+              child: _CaseSummarySection(
+                summary: result.caseSummary!,
+                actualDefendantCount: result.defendants.length,
+              ),
+            ),          // Suggested Verdict
           if (result.caseSummary?.suggestedVerdict != null)
             _buildSection(
               title: 'الحكم المقترح',
@@ -631,7 +638,7 @@ class _ProceduralAuditSection extends StatelessWidget {
         if (audit.criticalNullities.isNotEmpty) ...[
           SizedBox(height: 8.h),
           Text('بطلان جوهري:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp, color: DesignTokens.red)),
-          ...audit.criticalNullities.map((n) => Text('  • $n', style: TextStyle(fontSize: 12.sp, color: DesignTokens.red))),
+          ...audit.criticalNullities.map((n) => Text('  • $n'.toArabicNumbers(), style: TextStyle(fontSize: 12.sp, color: DesignTokens.red))),
         ],
         if (audit.violations.isNotEmpty) ...[
           SizedBox(height: 12.h),
@@ -655,7 +662,7 @@ class _ProceduralAuditSection extends StatelessWidget {
         ],
         if (audit.kgArticlesUsed.isNotEmpty) ...[
           SizedBox(height: 8.h),
-          _InfoRow('مواد قانونية مستخدمة', audit.kgArticlesUsed.join('، ')),
+          _InfoRow('مواد قانونية مستخدمة', audit.kgArticlesUsed.join('، ').toArabicNumbers()),
         ],
       ],
     );

@@ -4,32 +4,32 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/case_model.dart';
-import '../viewmodel/judge_cases_vm.dart';
-import 'widgets/case_details_dialog.dart';
+import '../viewmodel/cases_vm.dart';
+import 'case_files_page.dart';
 import '../../../../app/shared_widgets/custom_search_bar.dart';
 import '../../../../app/shared_widgets/custom_date_picker.dart';
 import '../../../../core/utils/arabic_numbers_extension.dart';
 
-class JudgeCasesPage extends ConsumerStatefulWidget {
-  const JudgeCasesPage({super.key});
+class LawyerCasesPage extends ConsumerStatefulWidget {
+  const LawyerCasesPage({super.key});
 
   @override
-  ConsumerState<JudgeCasesPage> createState() => _JudgeCasesPageState();
+  ConsumerState<LawyerCasesPage> createState() => _LawyerCasesPageState();
 }
 
-class _JudgeCasesPageState extends ConsumerState<JudgeCasesPage> {
+class _LawyerCasesPageState extends ConsumerState<LawyerCasesPage> {
   DateTime? _dateFilter;
 
   @override
   void initState() {
     super.initState();
-    _dateFilter = ref.read(judgeCasesVmProvider).dateFilter;
+    _dateFilter = ref.read(casesVmProvider).dateFilter;
   }
 
   @override
   Widget build(BuildContext context) {
-    final st = ref.watch(judgeCasesVmProvider);
-    final vm = ref.read(judgeCasesVmProvider.notifier);
+    final st = ref.watch(casesVmProvider);
+    final vm = ref.read(casesVmProvider.notifier);
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -48,26 +48,26 @@ class _JudgeCasesPageState extends ConsumerState<JudgeCasesPage> {
               children: [
                 _TabButton(
                   label: 'الجميع',
-                  isActive: st.activeTab == 'ALL',
-                  onTap: () => vm.setActiveTab('ALL'),
+                  isActive: st.statusFilter == 'ALL',
+                  onTap: () => vm.setStatusFilter('ALL'),
                 ),
                 SizedBox(width: 24.w),
                 _TabButton(
                   label: 'الجديدة',
-                  isActive: st.activeTab == 'PENDING',
-                  onTap: () => vm.setActiveTab('PENDING'),
+                  isActive: st.statusFilter == 'PENDING',
+                  onTap: () => vm.setStatusFilter('PENDING'),
                 ),
                 SizedBox(width: 24.w),
                 _TabButton(
-                  label: 'قيد التحليل',
-                  isActive: st.activeTab == 'IN_PROGRESS',
-                  onTap: () => vm.setActiveTab('IN_PROGRESS'),
+                  label: 'قيد التنفيذ',
+                  isActive: st.statusFilter == 'IN_PROGRESS',
+                  onTap: () => vm.setStatusFilter('IN_PROGRESS'),
                 ),
                 SizedBox(width: 24.w),
                 _TabButton(
                   label: 'مكتملة',
-                  isActive: st.activeTab == 'COMPLETED',
-                  onTap: () => vm.setActiveTab('COMPLETED'),
+                  isActive: st.statusFilter == 'COMPLETED',
+                  onTap: () => vm.setStatusFilter('COMPLETED'),
                 ),
               ],
             ),
@@ -81,7 +81,7 @@ class _JudgeCasesPageState extends ConsumerState<JudgeCasesPage> {
                 child: SizedBox(
                   height: 40.h,
                   child: CustomSearchBar(
-                    placeholder: 'ابحث في القضايا المقيدة',
+                    placeholder: 'ابحث في القضايا',
                     prefix: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.w),
                       child: CustomDatePicker(
@@ -154,30 +154,34 @@ class _JudgeCasesPageState extends ConsumerState<JudgeCasesPage> {
               child: st.loading && st.items.isEmpty
                   ? const Center(child: ProgressRing())
                   : st.items.isEmpty
-                      ? Center(
-                          child: Text(
-                            'لا توجد قضايا',
-                            style: TextStyle(
-                                fontSize: 16.sp, color: DesignTokens.gray),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: st.items.length,
-                          padding: EdgeInsets.zero,
-                          itemBuilder: (context, index) {
-                            final c = st.items[index];
-                            return _CaseRow(
-                              c: c,
-                              isLast: index == st.items.length - 1,
-                              onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => CaseDetailsDialog(c: c),
-                                );
-                              },
+                  ? Center(
+                      child: Text(
+                        'لا توجد قضايا',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: DesignTokens.gray,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: st.items.length,
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (context, index) {
+                        final c = st.items[index];
+                        return _CaseRow(
+                          c: c,
+                          isLast: index == st.items.length - 1,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              FluentPageRoute(
+                                builder: (context) =>
+                                    CaseFilesPage(caseModel: c),
+                              ),
                             );
                           },
-                        ),
+                        );
+                      },
+                    ),
             ),
           ),
           SizedBox(height: 12.h),
@@ -266,61 +270,76 @@ class _CaseRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: isLast
-                ? Colors.transparent
-                : DesignTokens.brown.withValues(alpha: 0.2),
+          border: Border(
+            bottom: BorderSide(
+              color: isLast
+                  ? Colors.transparent
+                  : DesignTokens.brown.withValues(alpha: 0.2),
+            ),
           ),
         ),
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                '#${c.caseNumber}'.toArabicNumbers(),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14.sp),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                c.courtRuling.isNotEmpty ? c.courtRuling : 'غير محدد',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14.sp),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${c.createdAt.day}-${c.createdAt.month}-${c.createdAt.year}'
+                    .toArabicNumbers(),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14.sp),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _statusLabel(c.status),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
+                  SizedBox(width: 12.w),
+                  // Just a visual cue that it uploads files
+                  Icon(
+                    FluentIcons.cloud_upload,
+                    size: 14.sp,
+                    color: DesignTokens.brown,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              '#${c.caseNumber}'.toArabicNumbers(),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14.sp),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              c.courtRuling.isNotEmpty ? c.courtRuling : 'غير محدد',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14.sp),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '${c.createdAt.day}-${c.createdAt.month}-${c.createdAt.year}'.toArabicNumbers(),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14.sp),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              _statusLabel(c.status),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14.sp),
-            ),
-          ),
-        ],
-      ),
-    ),
     );
   }
 
   String _statusLabel(String s) {
     switch (s.toUpperCase()) {
       case 'PENDING':
-        return 'لم يبدأ التحليل';
+        return 'قيد الانتظار';
+      case 'ASSIGNED':
+        return 'تم التعيين';
       case 'IN_PROGRESS':
-        return 'جاري التحليل';
+        return 'قيد التنفيذ';
       case 'COMPLETED':
         return 'مكتمل';
       default:
@@ -356,45 +375,45 @@ class _Pagination extends StatelessWidget {
           onPressed: onPrev,
         ),
         SizedBox(width: 12.w),
-        ...List.generate(
-          totalPages > 5 ? 5 : totalPages,
-          (i) {
-            final page = i;
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4.w),
-              child: GestureDetector(
-                onTap: () {},
-                child: Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                  decoration: BoxDecoration(
+        ...List.generate(totalPages > 5 ? 5 : totalPages, (i) {
+          final page = i;
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: GestureDetector(
+              onTap: () {},
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: page == currentPage
+                      ? DesignTokens.brown
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4.r),
+                ),
+                child: Text(
+                  '${page + 1}'.toArabicNumbers(),
+                  style: TextStyle(
                     color: page == currentPage
-                        ? DesignTokens.brown
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(4.r),
-                  ),
-                  child: Text(
-                    '${page + 1}'.toArabicNumbers(),
-                    style: TextStyle(
-                      color: page == currentPage
-                          ? Colors.white
-                          : DesignTokens.gray,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12.sp,
-                    ),
+                        ? Colors.white
+                        : DesignTokens.gray,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.sp,
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        }),
         if (totalPages > 5) ...[
           SizedBox(width: 4.w),
-          Text('...'.toArabicNumbers(),
-              style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray)),
+          Text(
+            '...'.toArabicNumbers(),
+            style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+          ),
           SizedBox(width: 4.w),
-          Text('$totalPages'.toArabicNumbers(),
-              style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray)),
+          Text(
+            '$totalPages'.toArabicNumbers(),
+            style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+          ),
         ],
         SizedBox(width: 12.w),
         IconButton(

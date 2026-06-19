@@ -12,6 +12,7 @@ class JudgeArchiveState {
   final int page;
   final int pageSize;
   final String query;
+  final DateTime? dateFilter;
 
   const JudgeArchiveState({
     this.loading = false,
@@ -22,6 +23,7 @@ class JudgeArchiveState {
     this.page = 0,
     this.pageSize = 10,
     this.query = '',
+    this.dateFilter,
   });
 
   JudgeArchiveState copyWith({
@@ -32,6 +34,8 @@ class JudgeArchiveState {
     PageInfo? pageInfo,
     int? page,
     String? query,
+    DateTime? dateFilter,
+    bool clearDateFilter = false,
   }) {
     return JudgeArchiveState(
       loading: loading ?? this.loading,
@@ -42,6 +46,7 @@ class JudgeArchiveState {
       page: page ?? this.page,
       pageSize: pageSize,
       query: query ?? this.query,
+      dateFilter: clearDateFilter ? null : (dateFilter ?? this.dateFilter),
     );
   }
 }
@@ -55,6 +60,11 @@ class JudgeArchiveVm extends Notifier<JudgeArchiveState> {
 
   void setQuery(String v) {
     state = state.copyWith(query: v, error: null);
+  }
+
+  void setDateFilter(DateTime? date) {
+    state = state.copyWith(dateFilter: date, clearDateFilter: date == null, page: 0);
+    _applyFilters();
   }
 
   void search() {
@@ -110,6 +120,14 @@ class JudgeArchiveVm extends Notifier<JudgeArchiveState> {
               c.caseNumber.toLowerCase().contains(q) ||
               c.courtRuling.toLowerCase().contains(q))
           .toList();
+    }
+
+    if (state.dateFilter != null) {
+      final d = state.dateFilter!;
+      filtered = filtered.where((c) => 
+          c.createdAt.year == d.year &&
+          c.createdAt.month == d.month &&
+          c.createdAt.day == d.day).toList();
     }
 
     final totalElements = filtered.length;

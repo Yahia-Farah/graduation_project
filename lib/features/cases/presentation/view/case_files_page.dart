@@ -15,6 +15,7 @@ import '../../cases_providers.dart';
 import '../../domain/case_model.dart';
 import '../../domain/case_details_model.dart';
 import '../viewmodel/case_files_vm.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 class CaseFilesPage extends ConsumerStatefulWidget {
   final CaseModel caseModel;
@@ -85,7 +86,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
           context,
           builder: (context, close) => InfoBar(
             title: const Text('خطأ'),
-            content: Text('تعذر جلب الملف للمعاينة: $e'),
+            content: Text(('تعذر جلب الملف للمعاينة: $e').toArabicNumbers()),
             severity: InfoBarSeverity.error,
             onClose: close,
           ),
@@ -114,7 +115,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
           context,
           builder: (context, close) => InfoBar(
             title: const Text('خطأ'),
-            content: Text('تعذر فتح الملف الخارجي: $e'),
+            content: Text(('تعذر فتح الملف الخارجي: $e').toArabicNumbers()),
             severity: InfoBarSeverity.error,
             onClose: close,
           ),
@@ -138,7 +139,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
           context,
           builder: (context, close) => InfoBar(
             title: const Text('نجاح'),
-            content: Text('تم حفظ الملف بنجاح: $savedPath'),
+            content: Text(('تم حفظ الملف بنجاح: $savedPath').toArabicNumbers()),
             severity: InfoBarSeverity.success,
             onClose: close,
           ),
@@ -155,7 +156,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
           context,
           builder: (context, close) => InfoBar(
             title: const Text('خطأ'),
-            content: Text('تعذر تحميل الملف: $e'),
+            content: Text(('تعذر تحميل الملف: $e').toArabicNumbers()),
             severity: InfoBarSeverity.error,
             onClose: close,
           ),
@@ -170,6 +171,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
     final vm = ref.read(caseFilesViewModelProvider(widget.caseModel.id).notifier);
     final authState = ref.watch(authSessionProvider);
     final isJudge = authState.role?.toUpperCase() == 'JUDGE';
+    final isAdmin = authState.role?.toUpperCase() == 'ADMIN';
 
     return ScaffoldPage(
       padding: EdgeInsets.zero,
@@ -180,7 +182,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
         child: Row(
           children: [
             // Upload button on far left
-            if (!isJudge)
+            if (!isJudge && widget.caseModel.status.toUpperCase() != 'COMPLETED')
               FilledButton(
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
@@ -209,8 +211,8 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
                   ],
                 ),
               ),
-            if (!isJudge) const Spacer(),
-            if (isJudge) const Spacer(),
+            if (!isJudge && widget.caseModel.status.toUpperCase() != 'COMPLETED') const Spacer(),
+            if (isJudge || widget.caseModel.status.toUpperCase() == 'COMPLETED') const Spacer(),
             Text(
               'قضية رقم #${widget.caseModel.caseNumber} - ${widget.caseModel.courtRuling.isNotEmpty ? widget.caseModel.courtRuling : "غير محدد"}',
               style: TextStyle(
@@ -253,7 +255,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
                     : EdgeInsets.zero,
                 child: previewingFileName != null
                     ? _buildPreviewSection()
-                    : (isJudge ? _buildEmptyPreviewSection() : _buildUploadSection(state)),
+                    : ((isJudge || widget.caseModel.status.toUpperCase() == 'COMPLETED') ? _buildEmptyPreviewSection() : _buildUploadSection(state)),
               ),
             ),
             SizedBox(width: 24.w),
@@ -310,7 +312,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
                               padding: EdgeInsets.all(16.w),
                               itemCount: state.files.length,
                               itemBuilder: (context, index) {
-                                return _buildFileItem(state.files[index], isJudge, vm);
+                                return _buildFileItem(state.files[index], isJudge, isAdmin, vm);
                               },
                             ),
                     ),
@@ -630,7 +632,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
     );
   }
 
-  Widget _buildFileItem(CaseFile file, bool isJudge, CaseFilesViewModel vm) {
+  Widget _buildFileItem(CaseFile file, bool isJudge, bool isAdmin, CaseFilesViewModel vm) {
     final isSelected = file.fileName == previewingFileName;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -651,7 +653,7 @@ class _CaseFilesPageState extends ConsumerState<CaseFilesPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (!isJudge)
+              if (isAdmin)
                 IconButton(
                   icon: Icon(FluentIcons.delete, color: DesignTokens.red, size: 14.sp),
                   onPressed: () {

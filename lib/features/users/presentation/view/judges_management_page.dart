@@ -6,6 +6,8 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../domain/user_entity.dart';
 import '../viewmodel/judges_viewmodel.dart';
 import 'add_user_dialog.dart';
+import '../../../../app/shared_widgets/custom_search_bar.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 class JudgesManagementPage extends ConsumerStatefulWidget {
   const JudgesManagementPage({super.key});
@@ -42,7 +44,16 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
 
           // ─── Search Bar and Add Button ────────────────────────────────────────
           Row(
+
             children: [
+              SizedBox(
+                width: 300,
+                child: CustomSearchBar(
+                  placeholder: _searchPlaceholder,
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                ),
+              ),
+              const Spacer(),
               FilledButton(
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(
@@ -67,18 +78,8 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
                   );
                 },
               ),
-              const Spacer(),
-              SizedBox(
-                width: 300,
-                child: TextBox(
-                  placeholder: _searchPlaceholder,
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                  suffix: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(FluentIcons.search, size: 14),
-                  ),
-                ),
-              ),
+
+
             ],
           ),
           const SizedBox(height: 16),
@@ -132,7 +133,7 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
   String get _searchPlaceholder {
     switch (_selectedTabIndex) {
       case 0:
-        return 'ابحث في القضايا';
+        return 'ابحث في المحامين';
       case 1:
         return 'ابحث في قائمة القضاة غير النشطين';
       default:
@@ -238,7 +239,7 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('حدث خطأ: $e'),
+            Text(('حدث خطأ: $e').toArabicNumbers()),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => ref.invalidate(judgesViewModelProvider),
@@ -437,7 +438,7 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
           builder: (ctx, setDialogState) {
             return ContentDialog(
               title: const Text('تأكيد الحذف'),
-              content: Text('هل أنت متأكد من حذف القاضي ${user.fullName}؟'),
+              content: Text(('هل أنت متأكد من حذف القاضي ${user.fullName}؟').toArabicNumbers()),
               actions: [
                 Button(
                   onPressed: isDeleting ? null : () => Navigator.pop(ctx),
@@ -575,7 +576,7 @@ class _JudgesManagementPageState extends ConsumerState<JudgesManagementPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('حدث خطأ: $e'),
+            Text(('حدث خطأ: $e').toArabicNumbers()),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => ref.invalidate(judgesViewModelProvider),

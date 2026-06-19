@@ -36,7 +36,14 @@ const appMenuItems = [
     keyName: 'cases',
     title: 'إدارة القضايا',
     icon: FluentIcons.branch_search,
-    allowedRoles: [UserRole.admin, UserRole.lawyer],
+    allowedRoles: [UserRole.admin],
+  ),
+
+  AppMenuItem(
+    keyName: 'lawyer_cases',
+    title: 'القضايا الخاصة بي',
+    icon: FluentIcons.branch_search,
+    allowedRoles: [UserRole.lawyer],
   ),
 
   AppMenuItem(

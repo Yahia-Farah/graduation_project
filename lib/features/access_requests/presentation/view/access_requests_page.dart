@@ -6,6 +6,9 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/access_request_entity.dart';
 import '../viewmodel/access_requests_viewmodel.dart';
+import '../../../../app/shared_widgets/custom_search_bar.dart';
+import '../../../../app/shared_widgets/custom_date_picker.dart';
+import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
 class AccessRequestsPage extends ConsumerStatefulWidget {
   const AccessRequestsPage({super.key});
@@ -47,7 +50,7 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
             children: [
               // Search Box
               Expanded(
-                child: TextBox(
+                child: CustomSearchBar(
                   placeholder: _selectedTabIndex == 0
                       ? 'ابحث في الطلبات'
                       : (_selectedTabIndex == 1
@@ -57,7 +60,8 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Icon(FluentIcons.search, size: 14),
                   ),
-                  suffix: _CustomDatePicker(
+                  suffix: CustomDatePicker(
+                    borderless: true,
                     selectedDate: _dateFilter,
                     onDateChanged: (v) {
                       setState(() {
@@ -174,7 +178,7 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
         }
       },
       loading: () => const Center(child: ProgressRing()),
-      error: (e, st) => Center(child: Text('خطأ: $e')),
+      error: (e, st) => Center(child: Text(('خطأ: $e').toArabicNumbers())),
     );
   }
 
@@ -263,7 +267,7 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        request.requestId.substring(0, 8),
+                        request.requestId.length > 8 ? request.requestId.substring(0, 8) : request.requestId,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -426,109 +430,3 @@ class _AccessRequestsPageState extends ConsumerState<AccessRequestsPage> {
   }
 }
 
-class _CustomDatePicker extends StatefulWidget {
-  final DateTime? selectedDate;
-  final ValueChanged<DateTime?> onDateChanged;
-
-  const _CustomDatePicker({
-    required this.selectedDate,
-    required this.onDateChanged,
-  });
-
-  @override
-  State<_CustomDatePicker> createState() => _CustomDatePickerState();
-}
-
-class _CustomDatePickerState extends State<_CustomDatePicker> {
-  final _flyoutController = FlyoutController();
-
-  @override
-  void dispose() {
-    _flyoutController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        FlyoutTarget(
-          controller: _flyoutController,
-          child: Button(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(Colors.white),
-              padding: WidgetStateProperty.all(
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              ),
-              shape: WidgetStateProperty.all(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  side: BorderSide(
-                    color: DesignTokens.brown.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
-            ),
-            onPressed: () {
-              _flyoutController.showFlyout(
-                builder: (context) {
-                  return FlyoutContent(
-                    padding: EdgeInsets.zero,
-                    child: SizedBox(
-                      width: 320,
-                      height: 350,
-                      // We use DatePicker from Fluent UI or Syncfusion.
-                      // Since we added syncfusion_flutter_datepicker, we use SfDateRangePicker
-                      child: SfDateRangePicker(
-                        view: DateRangePickerView.month,
-                        selectionMode: DateRangePickerSelectionMode.single,
-                        initialSelectedDate: widget.selectedDate,
-                        todayHighlightColor: DesignTokens.brown,
-                        selectionColor: DesignTokens.brown,
-                        monthCellStyle: DateRangePickerMonthCellStyle(
-                          todayTextStyle: const TextStyle(
-                            color: DesignTokens.brown,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textStyle: TextStyle(
-                            color: DesignTokens.brown.withValues(alpha: 0.8),
-                          ),
-                        ),
-                        headerStyle: const DateRangePickerHeaderStyle(
-                          textAlign: TextAlign.center,
-                          textStyle: TextStyle(
-                            color: DesignTokens.brown,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onSelectionChanged: (args) {
-                          if (args.value is DateTime) {
-                            widget.onDateChanged(args.value);
-                            Navigator.of(context).pop();
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-            child: const Icon(
-              FluentIcons.calendar,
-              size: 14,
-              color: DesignTokens.brown,
-            ),
-          ),
-        ),
-        if (widget.selectedDate != null) ...[
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(FluentIcons.clear, size: 12),
-            onPressed: () => widget.onDateChanged(null),
-          ),
-        ],
-      ],
-    );
-  }
-}

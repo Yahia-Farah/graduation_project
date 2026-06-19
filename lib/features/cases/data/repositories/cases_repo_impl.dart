@@ -122,6 +122,24 @@ class CasesRepoImpl implements CasesRepo {
   }
 
   @override
+  Future<List<dynamic>> getSentRequests(String status) async {
+    try {
+      final body = await _remote.getSentRequests(status);
+      if (body is Map && body['data'] is List) {
+        return body['data'] as List<dynamic>;
+      } else if (body is List) {
+        return body;
+      }
+      return [];
+    } on DioException catch (e) {
+      final msg = (e.response?.data is Map && e.response?.data['message'] != null)
+          ? e.response?.data['message'].toString()
+          : 'تعذر جلب الطلبات المرسلة';
+      throw Exception(msg);
+    }
+  }
+
+  @override
   Future<void> deleteCaseFile(String fileId) async {
     try {
       await _remote.deleteCaseFile(_getRole(), fileId);

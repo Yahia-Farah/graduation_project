@@ -7,12 +7,28 @@ import '../../domain/case_model.dart';
 import '../viewmodel/cases_vm.dart';
 import 'widgets/add_case_dialog.dart';
 import 'widgets/case_details_dialog.dart';
+import '../../../../app/shared_widgets/custom_search_bar.dart';
+import '../../../../app/shared_widgets/custom_date_picker.dart';
+import '../../../../core/utils/arabic_numbers_extension.dart';
 
-class CasesPage extends ConsumerWidget {
+class CasesPage extends ConsumerStatefulWidget {
   const CasesPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CasesPage> createState() => _CasesPageState();
+}
+
+class _CasesPageState extends ConsumerState<CasesPage> {
+  DateTime? _dateFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateFilter = ref.read(casesVmProvider).dateFilter;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final st = ref.watch(casesVmProvider);
     final vm = ref.read(casesVmProvider.notifier);
 
@@ -27,15 +43,7 @@ class CasesPage extends ConsumerWidget {
               // Search Box
               SizedBox(
                 width: 600,
-                child: TextBox(
-                  decoration: WidgetStateProperty.all(BoxDecoration(
-                    border:BoxBorder.all(color: DesignTokens.brown)
-                  )),
-                  suffix: _CustomDatePicker(
-                    selectedDate: st.dateFilter,
-                    onDateChanged: vm.setDateFilter,
-                  ),
-
+                child: CustomSearchBar(
                   placeholder: 'ابحث في القضايا',
                   prefix: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -43,6 +51,17 @@ class CasesPage extends ConsumerWidget {
                       icon: const Icon(FluentIcons.search, size: 14),
                       onPressed: () => vm.search(),
                     ),
+                  ),
+                  suffix: CustomDatePicker(
+                    borderless: true,
+                    iconSize: 18,
+                    selectedDate: _dateFilter,
+                    onDateChanged: (v) {
+                      setState(() {
+                        _dateFilter = v;
+                        vm.setDateFilter(v);
+                      });
+                    },
                   ),
                   onChanged: vm.setQuery,
                   onSubmitted: (_) => vm.search(),
@@ -52,7 +71,6 @@ class CasesPage extends ConsumerWidget {
 
               // Status Dropdown
               ComboBox<String>(
-
                 value: st.statusFilter,
                 items: const [
                   ComboBoxItem(value: 'ALL', child: Text('الحالة: الكل')),
@@ -147,7 +165,7 @@ class CasesPage extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                "${st.pageInfo.currentPage + 1} / ${st.pageInfo.totalPages}",
+                "${st.pageInfo.currentPage + 1} / ${st.pageInfo.totalPages}".toArabicNumbers(),
                 style: const TextStyle(),
               ),
               const SizedBox(width: 12),
@@ -233,7 +251,7 @@ class _CaseRow extends StatelessWidget {
           children: [
             Expanded(
               flex: 2,
-              child: Text("#${c.caseNumber}", textAlign: TextAlign.center),
+              child: Text("#${c.caseNumber}".toArabicNumbers(), textAlign: TextAlign.center),
             ),
             Expanded(
               flex: 2,
@@ -245,7 +263,7 @@ class _CaseRow extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                _formatDate(c.createdAt),
+                _formatDate(c.createdAt).toArabicNumbers(),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -283,107 +301,3 @@ class _CaseRow extends StatelessWidget {
   }
 }
 
-class _CustomDatePicker extends StatefulWidget {
-  final DateTime? selectedDate;
-  final ValueChanged<DateTime?> onDateChanged;
-
-  const _CustomDatePicker({
-    required this.selectedDate,
-    required this.onDateChanged,
-  });
-
-  @override
-  State<_CustomDatePicker> createState() => _CustomDatePickerState();
-}
-
-class _CustomDatePickerState extends State<_CustomDatePicker> {
-  final _flyoutController = FlyoutController();
-
-  @override
-  void dispose() {
-    _flyoutController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        FlyoutTarget(
-          controller: _flyoutController,
-          child: Button(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(Colors.white),
-              padding: WidgetStateProperty.all(
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-              shape: WidgetStateProperty.all(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  side: BorderSide(
-                    color: DesignTokens.brown,
-                  ),
-                ),
-              ),
-            ),
-            onPressed: () {
-              _flyoutController.showFlyout(
-                builder: (context) {
-                  return FlyoutContent(
-                    padding: EdgeInsets.zero,
-                    child: SizedBox(
-                      width: 320,
-                      height: 350,
-                      child: SfDateRangePicker(
-                        view: DateRangePickerView.month,
-                        selectionMode: DateRangePickerSelectionMode.single,
-                        initialSelectedDate: widget.selectedDate,
-                        todayHighlightColor: DesignTokens.brown,
-                        selectionColor: DesignTokens.brown,
-                        monthCellStyle: DateRangePickerMonthCellStyle(
-                          todayTextStyle: const TextStyle(
-                            color: DesignTokens.brown,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textStyle: TextStyle(
-                            color: DesignTokens.brown.withValues(alpha: 0.8),
-                          ),
-                        ),
-                        headerStyle: const DateRangePickerHeaderStyle(
-                          textAlign: TextAlign.center,
-                          textStyle: TextStyle(
-                            color: DesignTokens.brown,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onSelectionChanged: (args) {
-                          if (args.value is DateTime) {
-                            widget.onDateChanged(args.value);
-                            Navigator.of(context).pop();
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-            child: const Icon(
-              FluentIcons.calendar,
-              size: 18,
-              color: DesignTokens.brown,
-            ),
-          ),
-        ),
-        if (widget.selectedDate != null) ...[
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(FluentIcons.clear, size: 12),
-            onPressed: () => widget.onDateChanged(null),
-          ),
-        ],
-      ],
-    );
-  }
-}

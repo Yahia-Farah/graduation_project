@@ -16,16 +16,34 @@ class AccessRequestsRemoteDsImpl implements AccessRequestsRemoteDs {
   Future<List<AccessRequestEntity>> getRequestsByStatus(String status) async {
     final res = await dio.get('/v1/admin/users/lawyer-access/status', queryParameters: {
       'status': status,
-      'size': 1000,
+      'size': 20,
     });
     
     final responseData = res.data;
     List<dynamic> rawList = [];
 
-    if (responseData is Map && responseData.containsKey('data')) {
-      final nestedData = responseData['data'];
-      if (nestedData is Map && nestedData.containsKey('content') && nestedData['content'] is List) {
-        rawList = nestedData['content'] as List;
+    if (responseData is List) {
+      rawList = responseData;
+    } else if (responseData is Map) {
+      for (final key in ['data', 'content', 'items']) {
+        if (responseData[key] is List) {
+          rawList = responseData[key] as List;
+          break;
+        }
+      }
+      if (rawList.isEmpty && responseData.containsKey('data')) {
+        final nestedData = responseData['data'];
+        if (nestedData is Map) {
+          if (nestedData.containsKey('content') && nestedData['content'] is List) {
+            rawList = nestedData['content'] as List;
+          } else if (nestedData.containsKey('items') && nestedData['items'] is List) {
+            rawList = nestedData['items'] as List;
+          } else if (!nestedData.containsKey('totalElements') && !nestedData.containsKey('totalPages')) {
+            try {
+              return [AccessRequestEntity.fromJson(nestedData.cast<String, dynamic>())];
+            } catch (_) {}
+          }
+        }
       }
     }
 

@@ -89,6 +89,17 @@ class CasesRemoteDs {
     );
   }
 
+  Future<dynamic> getSentRequests(String status) async {
+    final res = await _dio.get(
+      '/v1/lawyer/case-requests',
+      queryParameters: {
+        'status': status,
+        'size': 1000,
+      },
+    );
+    return res.data;
+  }
+
   String _pathForRole(String role) {
     switch (role.toUpperCase()) {
       case 'ADMIN':

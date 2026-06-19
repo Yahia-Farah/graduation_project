@@ -13,6 +13,7 @@ class UserEntity {
   // Used only for creation (POST request)
   final String? nationalId;
   final String? password;
+  final DateTime? createdAt;
 
   UserEntity({
     required this.id,
@@ -27,6 +28,7 @@ class UserEntity {
     required this.isApproved,
     this.nationalId,
     this.password,
+    this.createdAt,
   });
 
   String get fullName => "$firstName $lastName";
@@ -57,6 +59,11 @@ class UserEntity {
       isApproved:
           json['isApproved'] == true ||
           json['isApproved']?.toString().toLowerCase() == 'true',
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : (json['created_at'] != null
+              ? DateTime.tryParse(json['created_at'].toString())
+              : null),
     );
   }
 
@@ -84,6 +91,7 @@ class UserEntity {
     int? assignedCasesCount,
     String? court,
     bool? isApproved,
+    DateTime? createdAt,
   }) {
     return UserEntity(
       id: id ?? this.id,
@@ -96,6 +104,7 @@ class UserEntity {
       assignedCasesCount: assignedCasesCount ?? this.assignedCasesCount,
       court: court ?? this.court,
       isApproved: isApproved ?? this.isApproved,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

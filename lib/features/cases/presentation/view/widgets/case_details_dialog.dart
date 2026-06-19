@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../app/theme/design_tokens.dart';
+import '../../../../../core/utils/arabic_numbers_extension.dart';
 import '../../../../ai_analysis/presentation/view/ai_analysis_result_page.dart';
 import '../../../../ai_analysis/presentation/viewmodel/ai_analysis_vm.dart';
 import '../../../domain/case_model.dart';
@@ -45,7 +46,7 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
           context,
           builder: (context, close) => InfoBar(
             title: const Text('خطأ'),
-            content: Text('حدث خطأ أثناء التحديث: $e'),
+            content: Text(('حدث خطأ أثناء التحديث: $e').toArabicNumbers()),
             severity: InfoBarSeverity.error,
             action: IconButton(
               icon: const Icon(FluentIcons.clear),
@@ -256,7 +257,7 @@ class _CaseDetailsDialogState extends ConsumerState<CaseDetailsDialog> {
                                    context,
                                    builder: (context, close) => InfoBar(
                                      title: const Text('خطأ'),
-                                     content: Text('تعذر تحميل نتيجة التحليل: ${e.toString().replaceFirst('Exception: ', '')}'),
+                                     content: Text(('تعذر تحميل نتيجة التحليل: ${e.toString().replaceFirst('Exception: ', '')}').toArabicNumbers()),
                                      severity: InfoBarSeverity.error,
                                      onClose: close,
                                    ),

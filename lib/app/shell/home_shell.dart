@@ -10,6 +10,7 @@ import '../../features/cases/presentation/view/judge_archive_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/dashboard/presentation/judge_dashboard_page.dart';
 import '../../features/dashboard/presentation/lawyer_dashboard_page.dart';
+import '../../features/cases/presentation/view/lawyer_cases_page.dart';
 import '../../features/users/presentation/view/users_management_page.dart';
 import '../../features/users/presentation/view/lawyers_management_page.dart';
 import '../../features/users/presentation/view/judges_management_page.dart';
@@ -98,6 +99,9 @@ class HomeShell extends ConsumerWidget {
                   case 'cases':
                     ref.invalidate(casesVmProvider);
                     break;
+                  case 'lawyer_cases':
+                    ref.invalidate(casesVmProvider);
+                    break;
                   case 'access_requests':
                     ref.invalidate(accessRequestsViewModelProvider);
                     break;
@@ -133,6 +137,9 @@ class HomeShell extends ConsumerWidget {
 
       case 'cases':
         return const CasesPage();
+
+      case 'lawyer_cases':
+        return const LawyerCasesPage();
 
       case 'access_requests':
         return const AccessRequestsPage();
