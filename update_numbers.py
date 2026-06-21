@@ -7,7 +7,7 @@ def convert(match):
     
     return match.group(1) + '(' + match.group(2) + match.group(3) + match.group(2) + ').toArabicNumbers()' + match.group(4)
 
-directory = r'c:\Users\newuser\StudioProjects\graduation_project\lib'
+directory = r'c:\Users\newuser\StudioProjects\el_mostashar\lib'
 for root, dirs, files in os.walk(directory):
     for file in files:
         if file.endswith('.dart'):
@@ -23,7 +23,7 @@ for root, dirs, files in os.walk(directory):
                     last_import = new_content.rfind('import ')
                     if last_import != -1:
                         end_of_line = new_content.find('\n', last_import)
-                        new_content = new_content[:end_of_line+1] + "import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';\n" + new_content[end_of_line+1:]
+                        new_content = new_content[:end_of_line+1] + "import 'package:el_mostashar/core/utils/arabic_numbers_extension.dart';\n" + new_content[end_of_line+1:]
                 
                 with open(path, 'w', encoding='utf-8') as f:
                     f.write(new_content)

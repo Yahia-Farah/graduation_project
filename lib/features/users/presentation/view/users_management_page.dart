@@ -5,7 +5,7 @@ import '../../domain/user_entity.dart';
 import '../viewmodel/users_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'add_user_dialog.dart';
-import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
+import 'package:el_mostashar/core/utils/arabic_numbers_extension.dart';
 
 class UsersManagementPage extends ConsumerWidget {
   const UsersManagementPage({super.key, this.roleFilter});

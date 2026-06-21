@@ -15,7 +15,7 @@ import '../../cases_providers.dart';
 import '../../domain/case_model.dart';
 import '../../domain/case_details_model.dart';
 import '../viewmodel/case_files_vm.dart';
-import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
+import 'package:el_mostashar/core/utils/arabic_numbers_extension.dart';
 
 class CaseFilesPage extends ConsumerStatefulWidget {
   final CaseModel caseModel;

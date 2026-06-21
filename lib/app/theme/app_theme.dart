@@ -1,5 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:graduation_project/app/theme/design_tokens.dart';
+import 'package:el_mostashar/app/theme/design_tokens.dart';
 
 class AppTheme {
   static FluentThemeData get data {

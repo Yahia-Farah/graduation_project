@@ -7,7 +7,7 @@ import '../../../../users/presentation/viewmodel/judges_viewmodel.dart';
 import '../../../../users/presentation/viewmodel/lawyers_viewmodel.dart';
 import '../../../cases_providers.dart';
 import '../../viewmodel/cases_vm.dart';
-import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
+import 'package:el_mostashar/core/utils/arabic_numbers_extension.dart';
 
 
 class AddCaseDialog extends ConsumerStatefulWidget {

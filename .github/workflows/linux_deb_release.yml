@@ -1,0 +1,83 @@
+name: Linux Release (.deb)
+
+on:
+  workflow_dispatch: # Allows you to manually trigger the build from GitHub UI
+  push:
+    tags:
+      - 'v*' # Automatically triggers when you push a version tag (e.g., git tag v1.0.0)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Dart dependencies
+        run: flutter pub get
+
+      - name: Build Linux app
+        run: flutter build linux --release
+
+      - name: Create Debian package (.deb)
+        run: |
+          mkdir -p deb-package/DEBIAN
+          mkdir -p deb-package/usr/bin
+          mkdir -p deb-package/usr/share/el_mostashar
+          mkdir -p deb-package/usr/share/applications
+          
+          # Copy Flutter build output
+          cp -r build/linux/x64/release/bundle/* deb-package/usr/share/el_mostashar/
+          
+          # Create a symlink so it can be run from the terminal
+          ln -s /usr/share/el_mostashar/el_mostashar deb-package/usr/bin/el_mostashar
+          
+          # Create the control file (metadata for the installer)
+          cat <<EOF > deb-package/DEBIAN/control
+          Package: el-mostashar
+          Version: 1.0.0
+          Section: base
+          Priority: optional
+          Architecture: amd64
+          Maintainer: El Mostashar Team
+          Description: A new Flutter project.
+          EOF
+          
+          # Create the desktop entry (app shortcut)
+          cat <<EOF > deb-package/usr/share/applications/el-mostashar.desktop
+          [Desktop Entry]
+          Version=1.0
+          Name=El Mostashar
+          Exec=/usr/bin/el_mostashar
+          Terminal=false
+          Type=Application
+          Categories=Utility;
+          EOF
+          
+          # Build the .deb file
+          dpkg-deb --build deb-package el_mostashar-linux-amd64.deb
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: el-mostashar-linux-deb
+          path: el_mostashar-linux-amd64.deb
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: el_mostashar-linux-amd64.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

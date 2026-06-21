@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/theme/design_tokens.dart';
 import '../../domain/ai_analysis_model.dart';
 import '../viewmodel/ai_analysis_vm.dart';
-import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
+import 'package:el_mostashar/core/utils/arabic_numbers_extension.dart';
 
 import '../../../dashboard/presentation/viewmodel/judge_dashboard_vm.dart';
 import '../../../cases/presentation/viewmodel/judge_cases_vm.dart';

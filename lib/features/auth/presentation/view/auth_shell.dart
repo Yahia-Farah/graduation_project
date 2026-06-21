@@ -127,7 +127,7 @@ class _LeftImage extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset('assets/images/court_image.png', fit: BoxFit.fill),
+        Image.asset('assets/images/court_image2.png', fit: BoxFit.cover),
       ],
     );
   }

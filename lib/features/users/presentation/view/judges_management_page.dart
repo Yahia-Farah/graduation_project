@@ -7,7 +7,7 @@ import '../../domain/user_entity.dart';
 import '../viewmodel/judges_viewmodel.dart';
 import 'add_user_dialog.dart';
 import '../../../../app/shared_widgets/custom_search_bar.dart';
-import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
+import 'package:el_mostashar/core/utils/arabic_numbers_extension.dart';
 
 class JudgesManagementPage extends ConsumerStatefulWidget {
   const JudgesManagementPage({super.key});

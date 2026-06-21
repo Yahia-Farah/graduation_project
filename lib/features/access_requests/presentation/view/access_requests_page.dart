@@ -8,7 +8,7 @@ import '../../domain/access_request_entity.dart';
 import '../viewmodel/access_requests_viewmodel.dart';
 import '../../../../app/shared_widgets/custom_search_bar.dart';
 import '../../../../app/shared_widgets/custom_date_picker.dart';
-import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
+import 'package:el_mostashar/core/utils/arabic_numbers_extension.dart';
 
 class AccessRequestsPage extends ConsumerStatefulWidget {
   const AccessRequestsPage({super.key});

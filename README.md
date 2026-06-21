@@ -32,7 +32,7 @@
 | Item | Value |
 |---|---|
 | **App Name** | El-Mostashar (المستشار) |
-| **Package name** | `graduation_project` |
+| **Package name** | `el_mostashar` |
 | **Root widget** | `ElMostasharApp` (`lib/app/el_mostashar_app.dart`) |
 | **Platform** | Windows Desktop (Flutter) |
 | **Language** | Dart 3.11+ |
