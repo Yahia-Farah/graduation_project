@@ -7,6 +7,12 @@ import '../../domain/ai_analysis_model.dart';
 import '../viewmodel/ai_analysis_vm.dart';
 import 'package:graduation_project/core/utils/arabic_numbers_extension.dart';
 
+import '../../../dashboard/presentation/viewmodel/judge_dashboard_vm.dart';
+import '../../../cases/presentation/viewmodel/judge_cases_vm.dart';
+import '../../../cases/presentation/viewmodel/judge_archive_vm.dart';
+import '../../../cases/presentation/viewmodel/cases_vm.dart';
+import '../../../../app/home_nav_provider.dart';
+
 class AiAnalysisResultPage extends ConsumerWidget {
   const AiAnalysisResultPage({super.key});
 
@@ -18,7 +24,7 @@ class AiAnalysisResultPage extends ConsumerWidget {
     if (result == null) {
       return ScaffoldPage(
         padding: EdgeInsets.zero,
-        header: _buildHeader(context),
+        header: _buildHeader(context, ref, null),
         content: Container(
           color: const Color(0xFFF7F5F0),
           child: Center(
@@ -33,7 +39,7 @@ class AiAnalysisResultPage extends ConsumerWidget {
 
     return ScaffoldPage(
       padding: EdgeInsets.zero,
-      header: _buildHeader(context),
+      header: _buildHeader(context, ref, result),
       content: Container(
         color: const Color(0xFFF7F5F0),
         padding: EdgeInsets.all(24.w),
@@ -53,7 +59,11 @@ class AiAnalysisResultPage extends ConsumerWidget {
                 // Header
                 Row(
                   children: [
-                    Icon(FluentIcons.branch_fork, size: 24.sp, color: DesignTokens.brown),
+                    Icon(
+                      FluentIcons.branch_fork,
+                      size: 24.sp,
+                      color: DesignTokens.brown,
+                    ),
                     SizedBox(width: 12.w),
                     Text(
                       'نتائج تحليل: ${result.caseTitle ?? 'قضية رقم #${result.caseNumber}'}',
@@ -65,151 +75,176 @@ class AiAnalysisResultPage extends ConsumerWidget {
                     ),
                   ],
                 ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              if (result.processedAt != null)
-                Text(
-                  'تاريخ التحليل: ${result.processedAt}',
-                  style: TextStyle(fontSize: 12.sp, color: DesignTokens.gray),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    if (result.processedAt != null)
+                      Text(
+                        'تاريخ التحليل: ${result.processedAt}',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: DesignTokens.gray,
+                        ),
+                      ),
+                    if (result.processedAt != null &&
+                        result.confidenceScore > 0)
+                      Text('  •  ', style: TextStyle(color: DesignTokens.gray)),
+                    if (result.confidenceScore > 0)
+                      Text(
+                        'نسبة الثقة: ${(result.confidenceScore * 100).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: result.confidenceScore > 0.8
+                              ? DesignTokens.green
+                              : DesignTokens.brown,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
                 ),
-              if (result.processedAt != null && result.confidenceScore > 0)
-                Text('  •  ', style: TextStyle(color: DesignTokens.gray)),
-              if (result.confidenceScore > 0)
-                Text(
-                  'نسبة الثقة: ${(result.confidenceScore * 100).toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: result.confidenceScore > 0.8 ? DesignTokens.green : DesignTokens.brown,
-                    fontWeight: FontWeight.bold,
+                SizedBox(height: 24.h),
+
+                // Case Summary
+                if (result.caseSummary != null)
+                  _buildSection(
+                    title: 'ملخص القضية',
+                    icon: FluentIcons.info,
+                    child: _CaseSummarySection(
+                      summary: result.caseSummary!,
+                      actualDefendantCount: result.defendants.length,
+                    ),
+                  ), // Suggested Verdict
+                if (result.caseSummary?.suggestedVerdict != null)
+                  _buildSection(
+                    title: 'الحكم المقترح',
+                    icon: FluentIcons.decision_solid,
+                    child: _SuggestedVerdictSection(
+                      verdict: result.caseSummary!.suggestedVerdict!,
+                    ),
                   ),
-                ),
-            ],
+
+                // Defendants
+                if (result.defendants.isNotEmpty)
+                  _buildSection(
+                    title: 'المتهمون (${result.defendants.length})',
+                    icon: FluentIcons.people,
+                    child: _DefendantsSection(defendants: result.defendants),
+                  ),
+
+                // Charges
+                if (result.charges.isNotEmpty)
+                  _buildSection(
+                    title: 'التهم (${result.charges.length})',
+                    icon: FluentIcons.list,
+                    child: _ChargesSection(charges: result.charges),
+                  ),
+
+                // Incidents
+                if (result.incidents.isNotEmpty)
+                  _buildSection(
+                    title: 'الوقائع (${result.incidents.length})',
+                    icon: FluentIcons.event_date,
+                    child: _IncidentsSection(incidents: result.incidents),
+                  ),
+
+                // Evidence
+                if (result.evidences.isNotEmpty)
+                  _buildSection(
+                    title: 'الأدلة (${result.evidences.length})',
+                    icon: FluentIcons.search,
+                    child: _EvidenceSection(evidences: result.evidences),
+                  ),
+
+                // Witness Statements
+                if (result.witnessStatements.isNotEmpty)
+                  _buildSection(
+                    title: 'شهادات الشهود (${result.witnessStatements.length})',
+                    icon: FluentIcons.contact,
+                    child: _WitnessSection(
+                      statements: result.witnessStatements,
+                    ),
+                  ),
+
+                // Confessions
+                if (result.confessions.isNotEmpty)
+                  _buildSection(
+                    title: 'الاعترافات (${result.confessions.length})',
+                    icon: FluentIcons.chat,
+                    child: _ConfessionsSection(confessions: result.confessions),
+                  ),
+
+                // Lab Reports
+                if (result.labReports.isNotEmpty)
+                  _buildSection(
+                    title: 'تقارير المعمل (${result.labReports.length})',
+                    icon: FluentIcons.test_case,
+                    child: _LabReportsSection(reports: result.labReports),
+                  ),
+
+                // Criminal Proceedings
+                if (result.criminalProceedings.isNotEmpty)
+                  _buildSection(
+                    title:
+                        'الإجراءات الجنائية (${result.criminalProceedings.length})',
+                    icon: FluentIcons.processing,
+                    child: _ProceedingsSection(
+                      proceedings: result.criminalProceedings,
+                    ),
+                  ),
+
+                // Defense Documents
+                if (result.defenseDocuments.isNotEmpty)
+                  _buildSection(
+                    title: 'مستندات الدفاع (${result.defenseDocuments.length})',
+                    icon: FluentIcons.document_set,
+                    child: _DefenseSection(documents: result.defenseDocuments),
+                  ),
+
+                // Procedural Audit
+                if (result.proceduralAudit != null)
+                  _buildSection(
+                    title: 'المراجعة الإجرائية',
+                    icon: FluentIcons.shield,
+                    child: _ProceduralAuditSection(
+                      audit: result.proceduralAudit!,
+                    ),
+                  ),
+
+                // Processing Errors
+                if (result.processingErrors.isNotEmpty)
+                  _buildSection(
+                    title: 'أخطاء المعالجة',
+                    icon: FluentIcons.warning,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: result.processingErrors
+                          .map(
+                            (e) => Padding(
+                              padding: EdgeInsets.only(bottom: 4.h),
+                              child: Text(
+                                '• $e',
+                                style: const TextStyle(color: DesignTokens.red),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+
+                SizedBox(height: 32.h),
+              ],
+            ),
           ),
-          SizedBox(height: 24.h),
-
-          // Case Summary
-          if (result.caseSummary != null)
-            _buildSection(
-              title: 'ملخص القضية',
-              icon: FluentIcons.info,
-              child: _CaseSummarySection(
-                summary: result.caseSummary!,
-                actualDefendantCount: result.defendants.length,
-              ),
-            ),          // Suggested Verdict
-          if (result.caseSummary?.suggestedVerdict != null)
-            _buildSection(
-              title: 'الحكم المقترح',
-              icon: FluentIcons.decision_solid,
-              child: _SuggestedVerdictSection(
-                  verdict: result.caseSummary!.suggestedVerdict!),
-            ),
-
-          // Defendants
-          if (result.defendants.isNotEmpty)
-            _buildSection(
-              title: 'المتهمون (${result.defendants.length})',
-              icon: FluentIcons.people,
-              child: _DefendantsSection(defendants: result.defendants),
-            ),
-
-          // Charges
-          if (result.charges.isNotEmpty)
-            _buildSection(
-              title: 'التهم (${result.charges.length})',
-              icon: FluentIcons.list,
-              child: _ChargesSection(charges: result.charges),
-            ),
-
-          // Incidents
-          if (result.incidents.isNotEmpty)
-            _buildSection(
-              title: 'الوقائع (${result.incidents.length})',
-              icon: FluentIcons.event_date,
-              child: _IncidentsSection(incidents: result.incidents),
-            ),
-
-          // Evidence
-          if (result.evidences.isNotEmpty)
-            _buildSection(
-              title: 'الأدلة (${result.evidences.length})',
-              icon: FluentIcons.search,
-              child: _EvidenceSection(evidences: result.evidences),
-            ),
-
-          // Witness Statements
-          if (result.witnessStatements.isNotEmpty)
-            _buildSection(
-              title: 'شهادات الشهود (${result.witnessStatements.length})',
-              icon: FluentIcons.contact,
-              child: _WitnessSection(statements: result.witnessStatements),
-            ),
-
-          // Confessions
-          if (result.confessions.isNotEmpty)
-            _buildSection(
-              title: 'الاعترافات (${result.confessions.length})',
-              icon: FluentIcons.chat,
-              child: _ConfessionsSection(confessions: result.confessions),
-            ),
-
-          // Lab Reports
-          if (result.labReports.isNotEmpty)
-            _buildSection(
-              title: 'تقارير المعمل (${result.labReports.length})',
-              icon: FluentIcons.test_case,
-              child: _LabReportsSection(reports: result.labReports),
-            ),
-
-          // Criminal Proceedings
-          if (result.criminalProceedings.isNotEmpty)
-            _buildSection(
-              title: 'الإجراءات الجنائية (${result.criminalProceedings.length})',
-              icon: FluentIcons.processing,
-              child: _ProceedingsSection(proceedings: result.criminalProceedings),
-            ),
-
-          // Defense Documents
-          if (result.defenseDocuments.isNotEmpty)
-            _buildSection(
-              title: 'مستندات الدفاع (${result.defenseDocuments.length})',
-              icon: FluentIcons.document_set,
-              child: _DefenseSection(documents: result.defenseDocuments),
-            ),
-
-          // Procedural Audit
-          if (result.proceduralAudit != null)
-            _buildSection(
-              title: 'المراجعة الإجرائية',
-              icon: FluentIcons.shield,
-              child: _ProceduralAuditSection(audit: result.proceduralAudit!),
-            ),
-
-          // Processing Errors
-          if (result.processingErrors.isNotEmpty)
-            _buildSection(
-              title: 'أخطاء المعالجة',
-              icon: FluentIcons.warning,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: result.processingErrors
-                    .map((e) => Padding(
-                          padding: EdgeInsets.only(bottom: 4.h),
-                          child: Text('• $e',
-                              style: const TextStyle(color: DesignTokens.red)),
-                        ))
-                    .toList(),
-              ),
-            ),
-
-          SizedBox(height: 32.h),
-        ],
+        ),
       ),
-    ))));
+    );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(
+    BuildContext context,
+    WidgetRef ref,
+    AiAnalysisResult? result,
+  ) {
     return Container(
       height: 60.h,
       color: const Color(0xFFDEB878),
@@ -217,6 +252,111 @@ class AiAnalysisResultPage extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          if (result != null)
+            Button(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(DesignTokens.brown),
+                padding: WidgetStateProperty.all(
+                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                ),
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    side: const BorderSide(color: DesignTokens.brown),
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    FluentIcons.refresh,
+                    size: 14.sp,
+                    color: DesignTokens.beige,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'إعادة التحليل',
+                    style: TextStyle(
+                      color: DesignTokens.beige,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ],
+              ),
+              onPressed: () async {
+                final state = ref.read(aiAnalysisVmProvider);
+                final caseId =
+                    state.viewingCaseId ??
+                    result.caseSummary?.caseId ??
+                    result.resultId;
+                if (caseId.isEmpty) return;
+
+                await showDialog(
+                  context: context,
+                  builder: (dialogContext) {
+                    return ContentDialog(
+                      title: const Text(
+                        'حذف نتيجة التحليل',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      content: const Text(
+                        'هل أنت متأكد من أنك تريد حذف هذه النتيجة وإعادة إرسال القضية للتحليل؟',
+                      ),
+                      actions: [
+                        Button(
+                          child: const Text('إلغاء'),
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                        ),
+                        FilledButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              DesignTokens.red,
+                            ),
+                          ),
+                          child: const Text('حذف'),
+                          onPressed: () async {
+                            final navigator = Navigator.of(context);
+                            Navigator.of(dialogContext).pop();
+                            try {
+                              await ref
+                                  .read(aiAnalysisVmProvider.notifier)
+                                  .deleteResult(caseId);
+
+                              ref.invalidate(judgeDashboardVmProvider);
+                              ref.invalidate(judgeCasesVmProvider);
+                              ref.invalidate(judgeArchiveVmProvider);
+                              ref.invalidate(casesVmProvider);
+                              
+                              ref.read(homeNavIndexProvider.notifier).state = 0;
+
+                              navigator.popUntil((route) => route.isFirst);
+                            } catch (e) {
+                              if (context.mounted) {
+                                displayInfoBar(
+                                  context,
+                                  builder: (context, close) => InfoBar(
+                                    title: const Text('خطأ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    content: Text(('تعذر حذف النتيجة: ${e.toString().replaceFirst('Exception: ', '')}').toArabicNumbers()),
+                                    severity: InfoBarSeverity.error,
+                                    action: IconButton(
+                                      icon: const Icon(FluentIcons.clear),
+                                      onPressed: close,
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          const Spacer(),
           Text(
             'نتيجة التحليل الذكي',
             style: TextStyle(
@@ -273,7 +413,7 @@ class AiAnalysisResultPage extends ConsumerWidget {
 class _CaseSummarySection extends StatelessWidget {
   final CaseSummary summary;
   final int actualDefendantCount;
-  
+
   const _CaseSummarySection({
     required this.summary,
     required this.actualDefendantCount,
@@ -290,8 +430,10 @@ class _CaseSummarySection extends StatelessWidget {
         _InfoRow('اسم النيابة', summary.prosecutorName),
         _InfoRow('عدد المتهمين', actualDefendantCount.toString()),
         _InfoRow('عدد التهم', summary.chargeCount.toString()),
-        _InfoRow('مخالفات إجرائية',
-            summary.hasProceduralViolations ? 'نعم' : 'لا'),
+        _InfoRow(
+          'مخالفات إجرائية',
+          summary.hasProceduralViolations ? 'نعم' : 'لا',
+        ),
       ],
     );
   }
@@ -308,11 +450,16 @@ class _SuggestedVerdictSection extends StatelessWidget {
       children: [
         _InfoRow('الحكم', verdict.verdict),
         _InfoRow('العقوبة المقترحة', verdict.penalty),
-        _InfoRow('نسبة الثقة', '${(verdict.confidenceScore * 100).toStringAsFixed(1)}%'),
+        _InfoRow(
+          'نسبة الثقة',
+          '${(verdict.confidenceScore * 100).toStringAsFixed(1)}%',
+        ),
         if (verdict.operativeText.isNotEmpty) ...[
           SizedBox(height: 8.h),
-          Text('النص التنفيذي:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp)),
+          Text(
+            'النص التنفيذي:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
+          ),
           SizedBox(height: 4.h),
           Container(
             width: double.infinity,
@@ -321,30 +468,37 @@ class _SuggestedVerdictSection extends StatelessWidget {
               color: DesignTokens.beige.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(8.r),
             ),
-            child: Text(verdict.operativeText, style: TextStyle(fontSize: 13.sp)),
+            child: Text(
+              verdict.operativeText,
+              style: TextStyle(fontSize: 13.sp),
+            ),
           ),
         ],
         if (verdict.perChargeRulings.isNotEmpty) ...[
           SizedBox(height: 12.h),
-          Text('أحكام التهم:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp)),
-          ...verdict.perChargeRulings.map((r) => Container(
-                margin: EdgeInsets.only(top: 8.h),
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  border: Border.all(color: DesignTokens.lightGray),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _InfoRow('التهمة', r.chargeDescription),
-                    _InfoRow('الحكم', r.verdict),
-                    _InfoRow('العقوبة', r.penalty),
-                    _InfoRow('التسبيب', r.reasoning),
-                  ],
-                ),
-              )),
+          Text(
+            'أحكام التهم:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
+          ),
+          ...verdict.perChargeRulings.map(
+            (r) => Container(
+              margin: EdgeInsets.only(top: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _InfoRow('التهمة', r.chargeDescription),
+                  _InfoRow('الحكم', r.verdict),
+                  _InfoRow('العقوبة', r.penalty),
+                  _InfoRow('التسبيب', r.reasoning),
+                ],
+              ),
+            ),
+          ),
         ],
       ],
     );
@@ -358,25 +512,33 @@ class _DefendantsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: defendants.map((d) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: defendants
+          .map(
+            (d) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                children: [
+                  _InfoRow('الاسم', d.name),
+                  if (d.alias.isNotEmpty) _InfoRow('الشهرة', d.alias),
+                  _InfoRow('الجنس', d.gender),
+                  _InfoRow('العمر', d.age.toString()),
+                  _InfoRow('المهنة', d.occupation),
+                  _InfoRow('الجنسية', d.nationality),
+                  if (d.address.isNotEmpty) _InfoRow('العنوان', d.address),
+                  if (d.nationalId.isNotEmpty)
+                    _InfoRow('الرقم القومي', d.nationalId),
+                  if (d.complicityRole.isNotEmpty)
+                    _InfoRow('الدور', d.complicityRole),
+                ],
+              ),
             ),
-            child: Column(children: [
-              _InfoRow('الاسم', d.name),
-              if (d.alias.isNotEmpty) _InfoRow('الشهرة', d.alias),
-              _InfoRow('الجنس', d.gender),
-              _InfoRow('العمر', d.age.toString()),
-              _InfoRow('المهنة', d.occupation),
-              _InfoRow('الجنسية', d.nationality),
-              if (d.address.isNotEmpty) _InfoRow('العنوان', d.address),
-              if (d.nationalId.isNotEmpty) _InfoRow('الرقم القومي', d.nationalId),
-              if (d.complicityRole.isNotEmpty) _InfoRow('الدور', d.complicityRole),
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -398,18 +560,21 @@ class _ChargesSection extends StatelessWidget {
             border: Border.all(color: DesignTokens.lightGray),
             borderRadius: BorderRadius.circular(8.r),
           ),
-          child: Column(children: [
-            _InfoRow('التهمة $i', c.description),
-            _InfoRow('القانون', c.lawCode),
-            _InfoRow('رقم المادة', c.articleNumber),
-            _InfoRow('نوع الجريمة', c.incidentType),
-            _InfoRow('التصنيف', c.chargeClassification),
-            _InfoRow('شروع', c.attemptFlag ? 'نعم' : 'لا'),
-            if (c.chargeDate.isNotEmpty) _InfoRow('التاريخ', c.chargeDate),
-            if (c.chargeLocation.isNotEmpty) _InfoRow('المكان', c.chargeLocation),
-            if (c.linkedDefendantNames.isNotEmpty)
-              _InfoRow('المتهمون', c.linkedDefendantNames.join('، ')),
-          ]),
+          child: Column(
+            children: [
+              _InfoRow('التهمة $i', c.description),
+              _InfoRow('القانون', c.lawCode),
+              _InfoRow('رقم المادة', c.articleNumber),
+              _InfoRow('نوع الجريمة', c.incidentType),
+              _InfoRow('التصنيف', c.chargeClassification),
+              _InfoRow('شروع', c.attemptFlag ? 'نعم' : 'لا'),
+              if (c.chargeDate.isNotEmpty) _InfoRow('التاريخ', c.chargeDate),
+              if (c.chargeLocation.isNotEmpty)
+                _InfoRow('المكان', c.chargeLocation),
+              if (c.linkedDefendantNames.isNotEmpty)
+                _InfoRow('المتهمون', c.linkedDefendantNames.join('، ')),
+            ],
+          ),
         );
       }).toList(),
     );
@@ -423,24 +588,30 @@ class _IncidentsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: incidents.map((i) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: incidents
+          .map(
+            (i) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                children: [
+                  _InfoRow('النوع', i.incidentType),
+                  _InfoRow('التاريخ', i.incidentDate),
+                  _InfoRow('المكان', i.incidentLocation),
+                  _InfoRow('الوصف', i.incidentDescription),
+                  if (i.perpetratorNames.isNotEmpty)
+                    _InfoRow('الجناة', i.perpetratorNames.join('، ')),
+                  if (i.victimNames.isNotEmpty)
+                    _InfoRow('الضحايا', i.victimNames.join('، ')),
+                ],
+              ),
             ),
-            child: Column(children: [
-              _InfoRow('النوع', i.incidentType),
-              _InfoRow('التاريخ', i.incidentDate),
-              _InfoRow('المكان', i.incidentLocation),
-              _InfoRow('الوصف', i.incidentDescription),
-              if (i.perpetratorNames.isNotEmpty)
-                _InfoRow('الجناة', i.perpetratorNames.join('، ')),
-              if (i.victimNames.isNotEmpty)
-                _InfoRow('الضحايا', i.victimNames.join('، ')),
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -452,25 +623,34 @@ class _EvidenceSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: evidences.map((e) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: evidences
+          .map(
+            (e) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                children: [
+                  _InfoRow('الوصف', e.description),
+                  _InfoRow('النوع', e.evidenceType),
+                  if (e.detailedText.isNotEmpty)
+                    _InfoRow('التفاصيل', e.detailedText),
+                  if (e.seizureDate.isNotEmpty)
+                    _InfoRow('تاريخ الضبط', e.seizureDate),
+                  if (e.seizureLocation.isNotEmpty)
+                    _InfoRow('مكان الضبط', e.seizureLocation),
+                  if (e.seizedBy.isNotEmpty) _InfoRow('بواسطة', e.seizedBy),
+                  _InfoRow('أمر ضبط', e.seizureWarrantPresent ? 'نعم' : 'لا'),
+                  if (e.linkedDefendantName.isNotEmpty)
+                    _InfoRow('المتهم المرتبط', e.linkedDefendantName),
+                ],
+              ),
             ),
-            child: Column(children: [
-              _InfoRow('الوصف', e.description),
-              _InfoRow('النوع', e.evidenceType),
-              if (e.detailedText.isNotEmpty) _InfoRow('التفاصيل', e.detailedText),
-              if (e.seizureDate.isNotEmpty) _InfoRow('تاريخ الضبط', e.seizureDate),
-              if (e.seizureLocation.isNotEmpty) _InfoRow('مكان الضبط', e.seizureLocation),
-              if (e.seizedBy.isNotEmpty) _InfoRow('بواسطة', e.seizedBy),
-              _InfoRow('أمر ضبط', e.seizureWarrantPresent ? 'نعم' : 'لا'),
-              if (e.linkedDefendantName.isNotEmpty)
-                _InfoRow('المتهم المرتبط', e.linkedDefendantName),
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -482,24 +662,30 @@ class _WitnessSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: statements.map((w) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: statements
+          .map(
+            (w) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                children: [
+                  _InfoRow('الاسم', w.witnessName),
+                  _InfoRow('النوع', w.witnessType),
+                  _InfoRow('المهنة', w.occupation),
+                  if (w.relationToDefendant.isNotEmpty)
+                    _InfoRow('العلاقة بالمتهم', w.relationToDefendant),
+                  _InfoRow('ملخص الشهادة', w.statementSummary),
+                  _InfoRow('أدى اليمين', w.wasSwornIn ? 'نعم' : 'لا'),
+                  _InfoRow('حاضر في المشهد', w.presenceAtScene ? 'نعم' : 'لا'),
+                ],
+              ),
             ),
-            child: Column(children: [
-              _InfoRow('الاسم', w.witnessName),
-              _InfoRow('النوع', w.witnessType),
-              _InfoRow('المهنة', w.occupation),
-              if (w.relationToDefendant.isNotEmpty)
-                _InfoRow('العلاقة بالمتهم', w.relationToDefendant),
-              _InfoRow('ملخص الشهادة', w.statementSummary),
-              _InfoRow('أدى اليمين', w.wasSwornIn ? 'نعم' : 'لا'),
-              _InfoRow('حاضر في المشهد', w.presenceAtScene ? 'نعم' : 'لا'),
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -511,28 +697,42 @@ class _ConfessionsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: confessions.map((c) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: confessions
+          .map(
+            (c) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _InfoRow('المتهم', c.defendantName),
+                  _InfoRow('المرحلة', c.confessionStage),
+                  _InfoRow('التاريخ', c.confessionDate),
+                  _InfoRow('حضور محامي', c.legalCounselPresent ? 'نعم' : 'لا'),
+                  _InfoRow('إكراه مدعى', c.coercionClaimed ? 'نعم' : 'لا'),
+                  _InfoRow('النص', c.text),
+                  if (c.keyAdmissions.isNotEmpty) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      'الاعترافات الرئيسية:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                    ...c.keyAdmissions.map(
+                      (a) => Text('  • $a', style: TextStyle(fontSize: 12.sp)),
+                    ),
+                  ],
+                ],
+              ),
             ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _InfoRow('المتهم', c.defendantName),
-              _InfoRow('المرحلة', c.confessionStage),
-              _InfoRow('التاريخ', c.confessionDate),
-              _InfoRow('حضور محامي', c.legalCounselPresent ? 'نعم' : 'لا'),
-              _InfoRow('إكراه مدعى', c.coercionClaimed ? 'نعم' : 'لا'),
-              _InfoRow('النص', c.text),
-              if (c.keyAdmissions.isNotEmpty) ...[
-                SizedBox(height: 4.h),
-                Text('الاعترافات الرئيسية:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.sp)),
-                ...c.keyAdmissions.map((a) => Text('  • $a', style: TextStyle(fontSize: 12.sp))),
-              ],
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -544,23 +744,29 @@ class _LabReportsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: reports.map((r) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: reports
+          .map(
+            (r) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                children: [
+                  _InfoRow('نوع التقرير', r.reportType),
+                  _InfoRow('رقم التقرير', r.reportNumber),
+                  _InfoRow('النتيجة', r.result),
+                  _InfoRow('تاريخ الفحص', r.examinationDate),
+                  _InfoRow('الفاحص', r.examinerName),
+                  if (r.linkedDefendantName.isNotEmpty)
+                    _InfoRow('المتهم المرتبط', r.linkedDefendantName),
+                ],
+              ),
             ),
-            child: Column(children: [
-              _InfoRow('نوع التقرير', r.reportType),
-              _InfoRow('رقم التقرير', r.reportNumber),
-              _InfoRow('النتيجة', r.result),
-              _InfoRow('تاريخ الفحص', r.examinationDate),
-              _InfoRow('الفاحص', r.examinerName),
-              if (r.linkedDefendantName.isNotEmpty)
-                _InfoRow('المتهم المرتبط', r.linkedDefendantName),
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -572,20 +778,26 @@ class _ProceedingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: proceedings.map((p) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: proceedings
+          .map(
+            (p) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                children: [
+                  _InfoRow('نوع الإجراء', p.procedureType),
+                  _InfoRow('الوصف', p.description),
+                  _InfoRow('أمر قضائي', p.warrantPresent ? 'نعم' : 'لا'),
+                  _InfoRow('الضابط المنفذ', p.conductingOfficer),
+                ],
+              ),
             ),
-            child: Column(children: [
-              _InfoRow('نوع الإجراء', p.procedureType),
-              _InfoRow('الوصف', p.description),
-              _InfoRow('أمر قضائي', p.warrantPresent ? 'نعم' : 'لا'),
-              _InfoRow('الضابط المنفذ', p.conductingOfficer),
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -597,30 +809,54 @@ class _DefenseSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: documents.map((d) => Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: DesignTokens.lightGray),
-              borderRadius: BorderRadius.circular(8.r),
+      children: documents
+          .map(
+            (d) => Container(
+              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: DesignTokens.lightGray),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _InfoRow('مقدم من', d.submittedBy),
+                  _InfoRow('المتهم', d.defendantName),
+                  _InfoRow('دفع بوجود أليبي', d.alibiClaimed ? 'نعم' : 'لا'),
+                  if (d.alibiDescription.isNotEmpty)
+                    _InfoRow('وصف الأليبي', d.alibiDescription),
+                  if (d.formalDefenses.isNotEmpty) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      'الدفوع الشكلية:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                    ...d.formalDefenses.map(
+                      (f) => Text('  • $f', style: TextStyle(fontSize: 12.sp)),
+                    ),
+                  ],
+                  if (d.substantiveDefenses.isNotEmpty) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      'الدفوع الموضوعية:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                    ...d.substantiveDefenses.map(
+                      (s) => Text('  • $s', style: TextStyle(fontSize: 12.sp)),
+                    ),
+                  ],
+                ],
+              ),
             ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _InfoRow('مقدم من', d.submittedBy),
-              _InfoRow('المتهم', d.defendantName),
-              _InfoRow('دفع بوجود أليبي', d.alibiClaimed ? 'نعم' : 'لا'),
-              if (d.alibiDescription.isNotEmpty) _InfoRow('وصف الأليبي', d.alibiDescription),
-              if (d.formalDefenses.isNotEmpty) ...[
-                SizedBox(height: 4.h),
-                Text('الدفوع الشكلية:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.sp)),
-                ...d.formalDefenses.map((f) => Text('  • $f', style: TextStyle(fontSize: 12.sp))),
-              ],
-              if (d.substantiveDefenses.isNotEmpty) ...[
-                SizedBox(height: 4.h),
-                Text('الدفوع الموضوعية:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.sp)),
-                ...d.substantiveDefenses.map((s) => Text('  • $s', style: TextStyle(fontSize: 12.sp))),
-              ],
-            ]),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -637,32 +873,56 @@ class _ProceduralAuditSection extends StatelessWidget {
         _InfoRow('التقييم العام', audit.overallAssessment),
         if (audit.criticalNullities.isNotEmpty) ...[
           SizedBox(height: 8.h),
-          Text('بطلان جوهري:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp, color: DesignTokens.red)),
-          ...audit.criticalNullities.map((n) => Text('  • $n'.toArabicNumbers(), style: TextStyle(fontSize: 12.sp, color: DesignTokens.red))),
+          Text(
+            'بطلان جوهري:',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13.sp,
+              color: DesignTokens.red,
+            ),
+          ),
+          ...audit.criticalNullities.map(
+            (n) => Text(
+              '  • $n'.toArabicNumbers(),
+              style: TextStyle(fontSize: 12.sp, color: DesignTokens.red),
+            ),
+          ),
         ],
         if (audit.violations.isNotEmpty) ...[
           SizedBox(height: 12.h),
-          Text('المخالفات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp)),
-          ...audit.violations.map((v) => Container(
-                margin: EdgeInsets.only(top: 8.h),
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  border: Border.all(color: DesignTokens.red.withValues(alpha: 0.3)),
-                  borderRadius: BorderRadius.circular(8.r),
+          Text(
+            'المخالفات:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
+          ),
+          ...audit.violations.map(
+            (v) => Container(
+              margin: EdgeInsets.only(top: 8.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: DesignTokens.red.withValues(alpha: 0.3),
                 ),
-                child: Column(children: [
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                children: [
                   _InfoRow('نوع الإجراء', v.procedureType),
                   _InfoRow('المشكلة', v.issueDescription),
                   _InfoRow('نوع البطلان', v.nullityType),
                   _InfoRow('أثر البطلان', v.nullityEffect),
                   _InfoRow('المادة', v.articleBasis),
                   _InfoRow('الضابط', v.conductingOfficer),
-                ]),
-              )),
+                ],
+              ),
+            ),
+          ),
         ],
         if (audit.kgArticlesUsed.isNotEmpty) ...[
           SizedBox(height: 8.h),
-          _InfoRow('مواد قانونية مستخدمة', audit.kgArticlesUsed.join('، ').toArabicNumbers()),
+          _InfoRow(
+            'مواد قانونية مستخدمة',
+            audit.kgArticlesUsed.join('، ').toArabicNumbers(),
+          ),
         ],
       ],
     );

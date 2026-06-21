@@ -44,7 +44,7 @@ class LoginState {
   }
 }
 
-class LoginVm extends Notifier<LoginState> {
+class LoginVm extends AutoDisposeNotifier<LoginState> {
   @override
   LoginState build() => const LoginState();
 
@@ -96,4 +96,4 @@ class LoginVm extends Notifier<LoginState> {
   }
 }
 
-final loginVmProvider = NotifierProvider<LoginVm, LoginState>(LoginVm.new);
+final loginVmProvider = AutoDisposeNotifierProvider<LoginVm, LoginState>(LoginVm.new);

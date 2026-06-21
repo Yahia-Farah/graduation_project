@@ -29,7 +29,7 @@ class OtpState {
   }
 }
 
-class OtpVm extends Notifier<OtpState> {
+class OtpVm extends AutoDisposeNotifier<OtpState> {
   @override
   OtpState build() => const OtpState();
 
@@ -59,4 +59,4 @@ class OtpVm extends Notifier<OtpState> {
   }
 }
 
-final otpVmProvider = NotifierProvider<OtpVm, OtpState>(OtpVm.new);
+final otpVmProvider = AutoDisposeNotifierProvider<OtpVm, OtpState>(OtpVm.new);

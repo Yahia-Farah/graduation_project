@@ -28,6 +28,7 @@ import '../../features/users/presentation/viewmodel/users_viewmodel.dart';
 import '../../features/cases/presentation/viewmodel/cases_vm.dart';
 import '../../features/access_requests/presentation/viewmodel/access_requests_viewmodel.dart';
 import '../../features/dashboard/presentation/viewmodel/dashboard_vm.dart';
+import '../../features/settings/presentation/view/settings_page.dart';
 
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
@@ -171,9 +172,7 @@ class HomeShell extends ConsumerWidget {
         );
 
       case 'settings':
-        return const Center(
-          child: Text('الإعدادات', style: TextStyle(fontSize: 24)),
-        );
+        return const SettingsPage();
 
       default:
         return const Center(child: Text('Unknown'));

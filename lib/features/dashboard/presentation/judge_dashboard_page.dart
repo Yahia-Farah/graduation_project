@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../app/theme/design_tokens.dart';
 import '../../ai_analysis/presentation/viewmodel/ai_analysis_vm.dart';
+import '../../ai_analysis/presentation/view/ai_analysis_result_page.dart';
 import '../../cases/domain/case_model.dart';
 import 'viewmodel/judge_dashboard_vm.dart';
 import '../../cases/presentation/view/widgets/case_details_dialog.dart';
@@ -113,9 +114,10 @@ class _JudgeDashboardPageState extends ConsumerState<JudgeDashboardPage> {
                           WidgetStateProperty.all(DesignTokens.brown),
                     ),
                     onPressed: () {
-                      aiVm.viewResult(task.result!);
-                      // Navigate to results page via setting nav index
-                      // This will be handled in home_shell.dart
+                      aiVm.viewResult(task.result!, caseId: task.caseId);
+                      Navigator.of(context).push(FluentPageRoute(
+                        builder: (context) => const AiAnalysisResultPage(),
+                      ));
                     },
                     child: const Text('عرض النتائج'),
                   ),
@@ -145,7 +147,7 @@ class _JudgeDashboardPageState extends ConsumerState<JudgeDashboardPage> {
               // Search Box
               Expanded(
                 child: SizedBox(
-                  height: 40.h,
+                  height: 48.h,
                   child: CustomSearchBar(
                     placeholder: 'ابحث في القضايا',
                     prefix: Padding(

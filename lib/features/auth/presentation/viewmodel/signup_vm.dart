@@ -76,7 +76,7 @@ class SignupState {
   }
 }
 
-class SignupVm extends Notifier<SignupState> {
+class SignupVm extends AutoDisposeNotifier<SignupState> {
   @override
   SignupState build() => const SignupState();
 
@@ -189,4 +189,4 @@ class SignupVm extends Notifier<SignupState> {
   }
 }
 
-final signupVmProvider = NotifierProvider<SignupVm, SignupState>(SignupVm.new);
+final signupVmProvider = AutoDisposeNotifierProvider<SignupVm, SignupState>(SignupVm.new);

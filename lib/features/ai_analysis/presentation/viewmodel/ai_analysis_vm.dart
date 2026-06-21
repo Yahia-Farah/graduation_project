@@ -41,20 +41,26 @@ class AiAnalysisState {
 
   /// The result that user wants to view (set when navigating to results page)
   final AiAnalysisResult? viewingResult;
+  
+  /// The case ID associated with the viewing result
+  final String? viewingCaseId;
 
   const AiAnalysisState({
     this.tasks = const {},
     this.viewingResult,
+    this.viewingCaseId,
   });
 
   AiAnalysisState copyWith({
     Map<String, AnalysisTask>? tasks,
     AiAnalysisResult? viewingResult,
+    String? viewingCaseId,
     bool clearViewing = false,
   }) {
     return AiAnalysisState(
       tasks: tasks ?? this.tasks,
       viewingResult: clearViewing ? null : (viewingResult ?? this.viewingResult),
+      viewingCaseId: clearViewing ? null : (viewingCaseId ?? this.viewingCaseId),
     );
   }
 
@@ -125,8 +131,8 @@ class AiAnalysisVm extends Notifier<AiAnalysisState> {
   }
 
   /// Set the result to view on the results page.
-  void viewResult(AiAnalysisResult result) {
-    state = state.copyWith(viewingResult: result, clearViewing: false);
+  void viewResult(AiAnalysisResult result, {String? caseId}) {
+    state = state.copyWith(viewingResult: result, viewingCaseId: caseId, clearViewing: false);
   }
 
   /// Fetch a saved result from the server and view it.
@@ -134,7 +140,7 @@ class AiAnalysisVm extends Notifier<AiAnalysisState> {
     try {
       final repo = ref.read(aiAnalysisRepoProvider);
       final result = await repo.getSavedResult(caseId);
-      viewResult(result);
+      viewResult(result, caseId: caseId);
     } catch (e) {
       // You could handle the error with a toast or some other mechanism
       rethrow;
@@ -144,6 +150,18 @@ class AiAnalysisVm extends Notifier<AiAnalysisState> {
   /// Clear the viewing result.
   void clearViewing() {
     state = state.copyWith(clearViewing: true);
+  }
+
+  /// Delete a saved result from the server.
+  Future<void> deleteResult(String caseId) async {
+    try {
+      final repo = ref.read(aiAnalysisRepoProvider);
+      await repo.deleteResult(caseId);
+      clearViewing();
+      dismissTask(caseId);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   /// Dismiss a completed/failed task from the list.

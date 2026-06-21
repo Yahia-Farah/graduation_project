@@ -18,4 +18,13 @@ class AiAnalysisRemoteDs {
     final res = await _dio.get('/v1/judges/cases/$caseId/result');
     return res.data;
   }
+
+  /// Deletes a saved AI analysis result.
+  Future<dynamic> deleteResult(String caseId) async {
+    final res = await _dio.delete(
+      '/ai/results/$caseId',
+      options: Options(responseType: ResponseType.plain),
+    );
+    return res.data;
+  }
 }

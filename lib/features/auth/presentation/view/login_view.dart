@@ -44,7 +44,7 @@ class LoginView extends ConsumerWidget {
               fontFamily: 'Amiri',
               fontSize: 22.sp,
               fontWeight: FontWeight.w700,
-              color: DesignTokens.black,
+              color: DesignTokens.brown,
             ),
           ),
           SizedBox(height: 20.h),
@@ -102,7 +102,7 @@ class LoginView extends ConsumerWidget {
                       'تسجيل الدخول',
                       style: TextStyle(
                         fontFamily: 'Amiri',
-                        color: DesignTokens.white,
+                        color: DesignTokens.beige,
                         fontWeight: FontWeight.w700,
                         fontSize: 16.sp,
                       ),

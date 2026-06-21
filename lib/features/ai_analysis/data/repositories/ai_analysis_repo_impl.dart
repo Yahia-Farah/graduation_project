@@ -44,4 +44,16 @@ class AiAnalysisRepoImpl implements AiAnalysisRepo {
       rethrow;
     }
   }
+
+  @override
+  Future<void> deleteResult(String caseId) async {
+    try {
+      await _remoteDs.deleteResult(caseId);
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data?['message'] ?? 'تعذر حذف نتيجة التحليل');
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
